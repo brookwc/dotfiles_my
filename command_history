@@ -1,0 +1,1896 @@
+#apple
+#ntent-Type:text/plain" -T examples.txt http://localhost:8080/vw-webservice-jersey-0.1.0-SNAPSHOT/predict/main
+parsec apple (search)
+"hotel cati" site:tr.foursquare.com
+tilemil (map visualzation)
+
+
+#spark/scala
+bin/spark-shell --master yarn-client -cp ../../locus/spark-assembly-1.2.1-hadoop2.3.0-cdh5.1.4.jar:../../locus/locus-assembly-1.3.jar --jars ../../locus/locus-assembly-1.3.jar,../../locus/spark-assembly-1.2.1-hadoop2.3.0-cdh5.1.4.jar
+
+#vw daemon model & web service related
+build vw-webservice war
+deploy to jetty
+java -jar start.jar (start jetty web server/container)
+curl -H "Content-Type:text/plain" -d "| x y z" http://localhost:8080/vw-webservice-jersey-0.1.0-SNAPSHOT/predict/main 
+
+pgrep vw |wc -l
+pkill -9 -f 'vw.*--port 26542' 
+
+
+#psql (postgresql)
+
+#spark
+curl -O http://d3kbcqa49mib13.cloudfront.net/spark-1.2.1.tgz
+ll
+tar zxf spark-1.2.1.tgz
+ls
+cd spark-1.2.1
+ls
+SPARK_HADOOP_VERSION=2.3.0-cdh5.1.0 SPARK_YARN=true sbt/sbt assembly
+rm -rf ~/.ivy2/cache/org.apache.spark
+rm -rf ~/.ivy2/cache/org.spark-project*
+rm -rf ~/.ivy2/cache/org.spark-project*
+rm -rf ~/.m2/repository/org/apache/spark
+rm -rf ~/.m2/repository/org/spark-project
+sbt/sbt -Pyarn -Phive -Phadoop-2.3 -Dhadoop.version=2.3.0-cdh5.1.4 clean assembly publish-local
+
+  560  ./bin/spark-shell --properties-file ../locus/conf/spark-defaults.conf
+  561  sudo mkdir -p /etc/hadoop/conf.cloudera.yarn7
+  562  cp ../locus/conf/* /etc/hadoop/conf.cloudera.yarn7
+  563  sudo cp ../locus/conf/* /etc/hadoop/conf.cloudera.yarn7
+  564  ./bin/spark-shell --properties-file ../locus/conf/spark-defaults.conf
+  565  ./bin/spark-shell --properties-file ../locus/conf/spark-defaults.conf
+  # within spark shell
+
+
+#mongodb
+show databases
+show tables
+use XX
+db.Reviews.count()
+
+#mars
+shiny/shiny
+/Users/shiny/web/mars/
+
+#python
+pip freeze |grep plotlib  (check package version)
+sudo pip install -U matplotlib (upgrade package)
+python -m SimpleHTTPServer 8090
+
+#pymc
+pip install --no-deps git+git://github.com/pymc-devs/pymc.git
+
+import time
+import numpy as np
+np.random.seed(0)
+
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import make_classification
+X, y = make_classification(1000, n_features=20, n_informative=2, 
+                           n_redundant=2, n_classes=2, random_state=0)
+
+from pandas import DataFrame
+df = DataFrame(np.hstack((X, y[:, None])), 
+               columns = range(20) + ["class"])
+
+_ = sns.pairplot(df[:50], vars=[8, 11, 12, 14, 19], hue="class", size=1.5)
+
+
+#ipython debugging
+ipython
+%run -d svm.py
+?
+?l: list (see code)
+n: next
+s: step into
+c: continue
+b 24
+disable 24
+clear: clear all breadpoints
+p: print
+pp: pretty print
+whatis: check type
+
+#psql (postgresql)
+select *, ST_SetSRID(ST_MakePoint(lon_idx, lat_idx), 4326) as geom, row_number() over () as id into counts_strong_us from (select round(lat, 2) as lat_idx, round(lon, 2) as lon_idx, count(*) as count from strong_query_us group by lat_idx, lon_idx) sub;
+
+select *, ST_SetSRID(ST_MakePoint(lon_idx, lat_idx), 4326) as geom, row_number() over () as id into counts_us from (select counts_all_us.lat_idx, counts_all_us.lon_idx, counts_all_us.count as count_all, counts_strong_us.count as count_strong from counts_all_us inner join counts_strong_us on counts_all_us.lat_idx = counts_strong_us.lat_idx and counts_all_us.lon_idx = counts_strong_us.lon_idx) sub;
+
+
+
+
+select *, ST_SetSRID(ST_MakePoint(lon_idx, lat_idx), 4326) as geom, row_number() over () as id into counts_all_noresult_us from (select counts_all_us.lat_idx, counts_all_us.lon_idx, counts_all_us.count as count_all, counts_noresult_us.count as count_noresult from counts_all_us inner join counts_noresult_us on counts_all_us.lat_idx = counts_noresult_us.lat_idx and counts_all_us.lon_idx = counts_noresult_us.lon_idx) sub;
+
+# +10 to denominator for smoothing
+select *, ST_SetSRID(ST_MakePoint(lon_idx, lat_idx), 4326) as geom, row_number() over () as id into noresult_rate_us from (select lat_idx, lon_idx, count_all, count_noresult, count_noresult * 1.0 / (count_all+10) as noresult_rate from counts_all_noresult_us where count_noresult <= count_all) sub;
+
+select * into counts_strong_noresult_us from (select counts_strong_us.lat_idx as lat_idx_strong, counts_strong_us.lon_idx as lon_idx_strong, counts_strong_us.count as count_strong, counts_noresult_us.lat_idx as lat_idx_noresult, counts_noresult_us.lon_idx as lon_idx_noresult, counts_noresult_us.count as count_noresult from counts_strong_us full outer join counts_noresult_us on counts_strong_us.lat_idx = counts_noresult_us.lat_idx and counts_strong_us.lon_idx = counts_noresult_us.lon_idx) sub;
+
+select * into counts_strong_noresult_us from (select case when lat_idx_strong is not null then lat_idx_strong else lat_idx_noresult end as lat_idx, case when lon_idx_strong is not null then lon_idx_strong else lon_idx_noresult end as lon_idx, case when count_strong is not null then count_strong else 0 end as count_strong, case when count_noresult is not null then count_noresult else 0 end as count_noresult from counts_strong_noresult_us_raw) sub;
+
+select *, ST_SetSRID(ST_MakePoint(lon_idx, lat_idx), 4326) as geom, row_number() over () as id into rate_noresult_strong_us from (select lat_idx, lon_idx, count_strong, count_noresult, (count_noresult+1.0) * 1.0 / (count_strong+5.0) as noresult_strong_rate from counts_strong_noresult_us) sub;
+
+create index counts_all_gb_geom on counts_all_gb using gist (geom);
+
+psql searchlog
+\d (table)
+\q
+
+CREATE TABLE noresult_query_us(ts date, query text, lat numeric, lon numeric);
+\copy noresult_query_us FROM './sample.valid.tsv';
+
+SELECT
+  MAX(noresult_strong_rate) as "Median of rate"
+FROM
+  (
+    SELECT
+      noresult_strong_rate,
+      ntile(2) OVER (ORDER BY noresult_strong_rate) AS bucket
+    FROM
+      rate_noresult_strong_us
+  ) as t
+WHERE bucket = 1
+GROUP BY bucket;
+
+# mac
+// set up python env
+(http://coolestguidesontheplanet.com/installing-homebrew-os-x-yosemite-10-10-package-manager-unix-apps/)
+//install xcode;
+//install homebrew 
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+//install pip
+easy_install pip
+
+//virtualenv:
+deactivate
+
+
+
+
+sudo su - // becomes root
+afp:   (finder -> go - > connect to server)
+echo "scale=20; 7524/14505137" |bc
+cat predict.b30.weight.final |awk -F"\t" '{if ($2==$4) sum+=$1} END {print sum}'
+cat glov_filtered_augmented |awk -F"\t" '{if ($3 != "" && $3"" != $4) print $0}' # force string comparison in awk
+
+// to use hadoop analytics cluster (st13)
+ssh st14a12ls-launchpad0001.st.ls.apple.com
+ssh st13p00it-smhadoop001.rock.apple.com
+ssh rd12d02ls-vm0117.geo.apple.com
+
+
+# hadoop/pig/hive
+hadoop fs -getmerge /output/dir/on/hdfs/ /desired/local/output/file.txt
+
+// aggregate columns in hive
+SELECT userid, collect_set(combined) FROM tabel GROUP BY user_id;
+
+
+// hive string convert to int
+select id, cast(totalcheckins as int) as c from places where country = 'ID' order by c desc limit 100;
+
+// hive nested query
+select count(*) from (select id, collect_set(category_value) as c from auto_step2 group by id having array_contains(c, "parking")) a;
+select * from (select id, collect_set(concat(category_key, ":", category_value)) as c from auto_step2 group by id having array_contains(c, "yelp_category_2:parking")) a limit 10;
+
+select count(*) from (select id, collect_set(concat(category_key, ":", category_value)) as c from auto_step2 group by id (having array_contains(c, "yelp_category_3:gasstations") and array_contains(c, "yelp_category_2:parking")) ) a;
+
+CREATE TABLE IF NOT EXISTS gemini_kevin (id string, name string, country string, countryCode string, category string) comment 'kevin gemini table' row format delimited fields terminated by '\t' stored as textfile;
+LOAD DATA INPATH '/user/cwang/gemini/all_cleansed.tsv' OVERWRITE INTO TABLE gemini_kevin;
+
+create table stats(lineNbr string, query string, source string, bizid string, pref_name string, cc string, dev_lat string, dev_lon string, loc_lat string, loc_lon string, dist_miles string) row format delimited fields terminated by '\t' stored as textfile;
+load data local inpath '/home/cwang5/abacus-master/data/query-13.stat.tsv.noheader' overwrite into table stats;
+
+
+CREATE TABLE IF NOT EXISTS search_log (query string, action_name string, businessId_encrypted string, businessId_decrypted string, service_provider string, ts string) row format delimited fields terminated by '\t' stored as textfile;
+
+CREATE TABLE IF NOT EXISTS search_log_weekly (ds string, query string, action_name string, businessid_encrypted string, businessid_decrypted string, service_provider string, ts string) row format delimited fields terminated by '\t' stored as textfile;
+
+load data local inpath '/home/cwang5/scripts/pig/q1.result.removeNULL.decrypt' overwrite into table search_log;
+load data local inpath '/home/cwang5/scripts/pig/weekly.result.20150105_2015011.removeNULL.decrypt' overwrite into table search_log_weekly;
+
+insert overwrite table join_result select search_log.query, search_log.action_name, search_log.businessid_decrypted as businessid, glov_us_20150117.category FROM search_log join glov_us_20150117 on search_log.businessid_decrypted = glov_us_20150117.id;
+insert overwrite table join_searchlogweekly_glov0117 select search_log_weekly.ds, search_log_weekly.query, search_log_weekly.action_name, search_log_weekly.businessid_decrypted as businessid, glov_us_20150117.category FROM search_log_weekly join glov_us_20150117 on search_log_weekly.businessid_decrypted = glov_us_20150117.id;
+
+show databases;
+use onboarding;
+show tables;
+describe glovlatest;
+
+// get no. of rows in a relation in pig
+C1 = FOREACH (GROUP A2 ALL) GENERATE COUNT(A2);
+
+# intellij (java)
+command + B // go to declaration
+command+alt+ <-/-> // navigate backward/forward
+command+alt+F7 (show usages)
+control+shift+F (search in all files)
+command + N // open class
+shift+command+N // open file
+shift+shift // search everywhere
+command + F // search current file
+control+tab // swtich between files opened
+command -/+ // expand or collapse code block in editor (great - no need for shift)
+
+# mac shortcut
+screen shot:
+cmd + shift + 4
+screenshot to clipboard:
+cmd + control + shift + 4
+
+
+#mvn
+mvn install:install-file -DgroupId=com.yahoo.hadoop -DartifactId=pig  -Dfile=pig-0.8.0.jar -Dversion=0.8.0 -Dpackaging=jar
+mvn compile
+mvn test
+mvn assembly:single
+
+# R related
+
+# to make vw work on mac os
+git clone git://github.com/JohnLangford/vowpal_wabbit.git // git is installed by default on mac os
+
+http://hunch.net/~vw/validate.html // vw input format validation tool
+
+// install brew
+xcode-select --install
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew doctor
+brew help
+brew search/list
+brew install libtool
+brew install boost --with-python
+brew install automake // to install aclocal
+./autogen.sh
+make
+
+
+
+#  unix shell
+##########################################
+sudo -u shiny bash
+echo $?
+$@: all parameters (preserving whitespace and quoting)
+$*: All of current command's parameters (not preserving whitespace and quoting)
+$0, $1 ... : the n-th parameter
+$$: PID of the currently running shell
+$!: PID of the last run background process
+%: last running background process (e.g., vi &; kill -9 %)
+grep chaow /etc/passwd
+grep 'pattern1\|pattern2' filename // grep or
+grep -Ei -n "click_mode|succeed" file
+Ctrl+a/e/u/k, Alt+b/f/d
+man 3 open
+script (typescript file generated, Ctrl+d to terminate)
+cat /dev/random >> /tmp/random # create some random file;
+screen -x
+script
+lsof | grep home: to see what processes are using /home
+top
+gzip -l (to see compression ratio)
+grep -lw
+tail -f
+bc # calculator
+sudo date 0901071731 (2009/1/7, 17:31)
+/usr/sbin/ntpd -p /var/run/ntpd.pid (freebsd 4)
+perl -le 'print $!+0, "\t", $!++ for 0..127' (print unix standard error codes)
+perldoc -f chomp
+find . -name foo > output.txt 2>&1
+sudo find  /home/y/var/mysql/ -type f | sudo xargs ls -l
+find -name test.sh 2>&1 | tee /tmp/output2.txt
+find . -name '*.swp' [-depth] -exec rm {} \;
+vi !$ (vi last operated file)
+ls -l |awk '{print $5}'
+ ps aux |grep -i java | awk '{ print $2}'  |xargs sudo kill -9
+grep ORA-00942 oozie.log.2010-10-10-* | awk -F':' '{print $1}' | uniq -c
+
+sort -rnk1 infile
+cat r1 |awk -F":" 'BEGIN{OFS="\t"}{print $1, $4}' |sort -rgk2  # use '-g' to sort columns having scientific notation
+
+zcat !$ |head  (!$: last operated thing)
+
+kldstat/kldload
+
+##################
+for i in {12..20}; do echo -e "11-14-$i"; gzip -dc oozie.log.2010-11-14-$i.gz | grep 'STARTED CoordActionInputCheckCommand' | egrep -o '0000064-101113220558096-oozie-wrkf-C@[0-9]+' | sort | uniq -c ; done | tee  ~/tmp/action_check
+
+
+bzcat hadoop-mapred-jobtracker-jtta00083.tan.ygrid.yahoo.com.log.2010-12-21.bz2 | grep -i "notification failure"|  egrep
+-o 'http://((\w)*\.)*(\w)*:[0-9]*' | sort | uniq -c
+    115 http://gsdaq109.blue.ygrid.yahoo.com:4080
+
+####################
+
+####
+for each in ./*
+do
+	echo $each
+	grep "func=\"GeoCountry\"" $each/control/query.conf.xml
+done
+####
+for i in ./*
+do
+  zcat $i | awk '{ print length($0) }' | sort -n | tail -n 1
+done
+####
+
+
+###
+while true
+do
+	ps -ef | grep [s]endmail | wc -l
+	sleep 5
+done
+###
+
+# gdb
+gdb ./executor executor.core; bt
+vespa package
+info break # show all breakpoints;
+disable 2;
+delete; # remove all breakpoints
+R
+command 2 #
+ignore br1 1000
+set print elements 0 (to print long string)
+x/1000db 0x1ba9000 (exmine memory)
+
+# screen
+- host side:
+yinst i ports/screen 
+screen -S test
+Ctrl-a :multiuser on 
+Ctrl-a :acladd seconduser
+Ctrl-a: d (detach)
+Ctrl-a: a (create new window)
+
+- client side
+screen -ls
+screen -x chaow/test
+
+ctrl-a+0/1...
+ctrl-a+"
+
+############################ C/C++ ***************
+# shared library
+:to compile and create .so
+gcc -fPIC (better than -fpic) -c triangle.cpp
+gcc -shared -o triangle.so triangle.o
+
+
+
+############# awk and sed ###################
+history|awk '{print $2}'|awk 'BEGIN {FS="|"} {print $1}'|sort|uniq -c|sort -r
+$echo "\/net\/mig6.data\/d1\/awacs\/data\/ucs16\/fortknox\/SearchOctopus2\/200402\/20040214\/bcookie\/meta\/schema"|sed 's/\\//g'
+
+
+############ change xterm color scheme ####
+Edit ~/.Xresources:
+xterm*foreground: white
+xterm*background: black
+
+xrdb ~/.Xresources
+
+
+###########################################
+*************** Latex: ********************
+For pseudocode, use 
+algorithm2e.sty (http://www.lirmm.fr/~fiorio/AlgorithmSty/)
+
+
+ls -tr
+ls -ld /net/moment5
+!100
+cd -
+
+###########################################
+******* printing: *************
+
+lp -d lj_dl_672_a -o duplex=DuplexNoTumble thesis_Nestorov.ps
+
+
+
+###########################################
+******** More linux commands (including vi) *****************
+:140,160s/^\s*//g
+:140,160s/^\s\+//g
+:%s/ .\+$//g // remove all stuff after first space
+:set (no)ic  # case sensitive
+:1s/f\(\d\+\)/\1/g  (use re for grouping/replacing, note \1, \(...\)
+tr '[:upper:]' '[:lower:]' < tt2 > tt3 ; (use tr to convert to lowercase)
+ssh -L 8999:17.212.151.183:9000 cwang@17.212.151.183 -N // for vnc viewer via ssh tunnel
+ssh -L 8999:17.228.147.219:9000 cwang@17.228.147.219 -N
+sudo -u poi-onboarding bash
+
+
+vim + latex suite
+\rf == refresh fold
+za: switch between fold and unfold;
+
+let g:Tex_Folding=0/1
+
+u: undo
+Ctrl-r: redo
+Ctrl-g: show file info
+:e 
+:bnext(bn)/bpref(bp)  //switch between different buffers;
+*/#
+
+du -d 1 -h .
+df -h
+df -h /homes/chaow (can check mounting)
+nm /home/y/lib/libmynacommon.so.1 |c++filt|grep operator
+less /net/myna/clusters/moment89/conf/cluster.conf.xml
+pushd/popd/dirs
+strace -p pid (-s 1000 ...);
+strace  -o/tmp/strace.txt `cat ./r`
+ldd /home/y/lib/perl5/site_perl/5.6.1/libQueueDb.so
+ldd executor; (to see what libraries used by executor)
+apropos automount
+nslookup ip
+sudo su dp
+systat -iostat
+systat -iostat -netstat
+find . -name '*.h' -o -name '*.cpp' -o -name '*.cc' -o -name '*.pl' -o -name '*.lex' -o -name '*.y' -o -name '*.pm' | xargs cat | wc -l
+diff -cb
+
+sudo useradd -g testg test2
+
+sudo vi /etc/sysctl.conf
+sudo sysctl -p
+
+#disconnect someone
+who -u
+kill pid
+
+#convert to html
+runtime syntax/2html.vim
+
+latex:
+beamer: for making powerpoint slides; 
+
+#recursive grep
+find . -name "*.tex" |xargs grep "Goldenberg"
+
+vncserver -geometry 1880x1170 -depth 24
+
+
+#Yahoo!
+id  // user identity;
+yinst pack -all maven
+yinst save -file /tmp/ysave
+yinst store -file ./ysave
+yinst ysar -h  ac4-devmyna-[001-009].ysm.ac4.yahoo.com -j 3 -live
+yinst set
+yinst ls -dep miners_core_dev
+yinst ls -dep -dep miners_myna_common-2.3.4 (to list all dependencies)
+yinst install miners_torque_client -set miners_torque_common.PBS_SERVER=moment2.data.corp.sk1.yahoo.com -same -live -branch test -h mig11.data.yahoo.com
+yinst install miners_torque_node -set miners_torque_common.PBS_SERVER=moment2.data.corp.sk1.yahoo.com -same -set miners_torque_node.CLUSTER_ADMIN_MAIL=chaow -live -branch test -h mig14.data.yahoo.com
+
+yinst ssh "df -lh"  -h  ac4-devmyna-[001-009].ysm.ac4.yahoo.com
+yinst ssh "sudo cp /home/y/libexec/miners_myna/executor.old /home/y/libexec/miners_myna/executor; sudo cp /home/y/libexec/miners_myna/combiner.pl.old /home/y/libexec/miners_myna/combiner.pl" -h ac4-devmyna-[002-009].ysm.ac4.yahoo.com
+yinst ssh "sudo cp /home/y/libexec/miners_myna/executor_delaysort /home/y/libexec/miners_myna/executor; sudo cp /home/y/libexec/miners_myna/combiner.pl_2.3 /home/y/libexec/miners_myna/combiner.pl" -h ac4-devmyna-[002-009].ysm.ac4.yahoo.com
+yinst ssh "cd /home/y/libexec/miners_myna; sudo rm executor combiner.pl; sudo ln -s /homes/chaow/dev_mainbranch/yahoo/miners/myna/executor/FreSD.4.11.dbg/executor; sudo ln -s /homes/chaow/dev_mainbranch/yahoo/miners/myna/combiner/combiner.pl ./combiner.pl" -h mig[12-14].data 
+
+# myna tricks
+myna -execute "insert (datestamp = '20040220') into IPusrlogs_b_daily(bcookie, country_id)  select distinct '0000000vl0naj&b=2', '9' from IPusrlogs_b_daily where datestamp = '20040219' order by 1;" -verbose -cluster chao_cluster -w myna_test
+yinst crontab -off/on miners_myna_admin_cron -h femachine.yahoo.com (turn off admin cron job, all log and intermediate files will be kept)
+
+// dealing with temp tables;
+
+
+# main branch
+yinst i -downgrade -same -live ./miners_myna_common-2.0.22-freebsd-4.xdef.tgz ./miners_myna_common_lib-1.9.2-freebsd-4.xdef.tgz ./miners_myna_cluster-2.0.39-freebsd-4.xdef.tgz -h ac4-devawserver-001.ysm.ac4; yinst i ./miners_myna_common-2.0.22-freebsd-4.xdef.tgz ./miners_myna_common_lib-1.9.2-freebsd-4.xdef.tgz ./miners_myna_drone-2.0.25-freebsd-4.xdef.tgz -live -downgrade -same -h ac4-devmyna-[002-009].ysm.ac4
+# yan's branch
+yinst i -downgrade -same -live ./miners_myna_common-2.0.22-freebsd-4.xdef.tgz ./miners_myna_common_lib-1.9.2-freebsd-4.xdef.tgz ./miners_myna_cluster-2.0.39-freebsd-4.xdef.tgz -h ac4-devawserver-001.ysm.ac4; yinst i ./miners_myna_common-2.0.22-freebsd-4.xdef.tgz ./miners_myna_common_lib-1.9.2-freebsd-4.xdef.tgz ./miners_myna_drone-2.0.25-freebsd-4.xdef.tgz -live -downgrade -same -h ac4-devmyna-[002-009].ysm.ac4
+
+myna -w myna_test -execute "select count(*) from SearchOctopus2_b_daily where datestamp between '20030114' and '20070218';" -verbose -trace_level debug -cluster chao_cluster
+myna -w myna_test -execute "select count(*) from SearchOctopus2_b_daily where datestamp = '20040214';" -verbose -trace_level debug -cluster chao_cluster
+
+cd /net/wares13.data/myna/central//nightly/chaow/nightly.chaow.1203459473.mig2.47775/logs
+
+yinst install miners_myna -set miners_myna.cluster_name="nightly" -branch test   -same -live
+
+eval `ssh-agent`
+ssh-add
+ssh-agent bash; ssh-add
+ssh -X 
+ssh-copy-id -i ".ssh/id_dsa.pub" svlhdev05
+
+
+yinst install -downgrade openssl-0.9.6b.1
+yinst ls -files /usr/local/lib/libgtk-x11-2.0.a
+yinst history
+yinst ls |grep -v 'admin\|perl' |xargs yinst rm -live (-noexecute: DANGEROUS!!!)
+yinst stop && yinst rm -live -nostop -noexec -all `yinst ls -all | grep -v admin/ | grep -v perl`
+strace -p pid;
+yinst ls -dep miners_myna_admin
+ldd /home/y/lib/perl5/site_perl/5.6.1/libQueueDb.so
+
+On scheduler box:
+sudo /home/y/bin64/qmgr -c "delete node moment6.data.corp.sk1.yahoo.com"
+/home/y/bin64/pbsnodes -a
+myna -cluster chao_cluster -warehouse myna_test -execute "select distinct datestamp from SearchOctopus2_b_daily;" -verbose
+sudo mount /net/login1.corp/chaow /homes/chaow -t nfs
+apropos automount
+sysctl hw (bsd, check out mem, cpu info)
+sysctl -A |grep mem
+
+yinst i hwconfig
+sudo hwconfig |grep -i disk
+
+
+###########################################################
+##### cvs and myna build related ##########################
+###########################################################
+cvs status -help
+$cvs checkout -r myna_20_distributed_query myna
+$cvs co -r myna_20_distributed_query yahoo/miners/myna/admin (under ~/dev/)
+$cvs status -v admin.pl
+cvs update SprayOperator.cpp   (sync up with repository)
+cvs status -v SprayOperator.cpp (check which branch)
+cvs update -A Inser_2.query.conf.xml (sticky tag problem: cannot not check in)
+cvs update -C SprayOperator.cpp (get a clean one from repository to overwrite the local copy)
+cvs update -C PhysicalOperator.cpp
+cvs tag -r 1.6.14.2 -F myna_225 SprayOperator.cpp (tag SprayOperator.cpp-1.6.14.2 with "myna_225")
+
+# add new files to cvs repository;
+cvs add MruCache.h
+cvs commit -m "xxx" MruCache.h
+
+export CVSZIP_FAST=1
+export LD_LIBRARY_PATH=../FreeBSD.4.11.def:$LD_LIBRARY_PATH (when seeing error like /* /usr/libexec/ld-elf.so.1: /home/y/libexec/miners_myna/executor: Undefined symbol "InitNewMemoryManager__Q34Myna8Executor13MemoryManagerUi" */ )
+
+gmake MODE=def package-release   (will create new packages) OR
+yinst_create --buildtype=release miners_myna.yicf
+
+$cvs commit admin.pl README.miners_myna_admin README.miners_myna_admin_cron miners_myna_admin.yicf
+cvs diff [-bw] (ignore whitespace) [-y] (side by side format) admin.pl
+
+#cvs update output;
+U: the file does not exist previously;
+M: can merge;
+C: conflict;
+P: 
+?: local file not in cvs
+
+
+
+dist_install  miners_myna_admin-2.0.26-freebsd-4.xdef.tgz  miners_myna_admin_cron-2.0.26-freebsd-4.xdef.tgz -branch test
+
+yinst i  miners_wh_punc_dev -br test
+yinst i  miners_awacs_cs_wrapper_dev -br test
+dev/.../myna/ymbuildicus/conf/   => list of all packages needed to build myna;
+
+# check the change on local branch into main branch
+1) LOCAL BRANCH (under "~/dev_local"): First, check in all changes to local branch; 
+2) MAIN_BRANCH (under "~/dev_main"): cvs co myna   # check out from main branch; without specifying branch tag by "-r", it's main branch;
+under "~/dev_main" cvs co -j myna_20_distributed_query yahoo/miners/myna/admin/xyz  # check out change happened in local branch;
+cvs commit -m "bla bla" xyz;  #check in local branch change to main branch; 
+
+# create a new branch;
+cvs rtag -b -r myna_20_lz2 myna_20_insertOP myna #(myna_20_insertOP is a subbranch);
+cvs rtag myna_22 myna  # tag the main branch with "myna_22";
+cvs tag myna_223 myna
+
+############################################
+# Myna 2.0 installation;
+############################################
+on drone and fe boxes:
+1) yinst stop && yinst rm -live -nostop -noexec -all `yinst ls -all | grep -v admin/ | grep -v perl`
+2) yinst install -live -downgrade perlbase-1.4.2 local_perl_compat-1.6.2 perl-5.6.1_5 ypan/perl-Net-SSH-Perl-1.25
+3) Install miners_myna_admin from test branch (I run this on my fe box);
+	yinst i miners_myna_admin -br test
+4) Install myna cluster
+	myna_admin -cmd install -cluster xyz_cluster -config test.conf -branch test
+
+	yinst miners_myna_common_lib -br test #(now missing miners_myna_common -> miners_myna_common_lib dependency, manually install it)
+
+	#perl-XML-Simple depend issue;
+	yinst i perl-XML-Simple-2.14_02 -downgrade -live
+
+	#miners_myna_drone-1.8.27 version problem (!!cannot reproduce)
+	#modify myna_admin to use "branch test"
+
+	# miners_mdr_client dependency issue;
+	# used by old awac cllient, but new awac client does not use it. Myna 2.0 only use new awac client.
+	yinst  miners_mdr_client -live
+
+	# current myna 2.0 still uses awacs/mdr client command line invocation;
+	# so, still needs to install "miners_wh_client_dwname" package;
+	yinst i miners_wh_client_myna_test  (actually, this package will install miners_mdr_client package);
+
+ YINST=requires pkg miners_myna_common_lib 1.9.0  1.9999.9999
+
+
+#############################################
+  myna_admin -cmd update // new version is at:
+ 	./yinst-pw ./admin.pl
+	perl -c admin.pl // needs other perl files to be ready;
+myna_admin -cmd kill -query_id __all__  -cluster chao_cluster
+
+
+############ use yroot box for drone box ##########################
+1) install moment5-vm0
+essentially, yroot does mounting: 127.0.0.1:/home/chaow on /home/y/var/yroots/moment5-vm0/home/chaow (nfs)
+
+2) moment5-vm0
+sudo mkdir /home/d1
+sudo ln -s /home/d1 /d1
+
+3) exports moment5-vm0's /home/d1 to other boxes (actually yroot cannot do this, but we have a natural workaround, since we
+have master box moment5 visible to other boxes, so symbolic links can work :)
+moment5: sudo mkdir /net/moment5
+moment5: sudo mkdir /net/moment6
+moment5: sudo ln -s /net/moment5/y/var/yroots/moment5-vm0/home/ /net/moment5-vm0
+moment6: sudo ln -s /net/moment5/y/var/yroots/moment5-vm0/home/ /net/moment5-vm0
+
+4) exports other boxes to moment5-vm0;
+moment5-vm0: yroot --mount moment5-vm0 moment5.data.corp.sk1:/home /net/moment6
+moment5-vm0: yroot --mount moment5-vm0 moment6.data.corp.sk1:/home /net/moment6
+
+do NOT do however: yroot --mount moment5-vm0 moment5-vm0.data.corp.sk1:/home /net/mome 
+(Basically do not try to mount /home of yroot boxes! because they are symbolic links;
+Instead, use symbolic link!
+
+
+
+##############################################
+#  insert optimation related;
+##############################################
+myna queries:
+myna -execute "delete from IPusrlogs_l_daily where datestamp='19001164';"  -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+myna -execute "insert (datestamp = '19001164') into IPusrlogs_l_daily select yuid as username from SearchOctopus2_b_daily where datestamp = '20040214' order by 1;"  -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -execute "INSERT (datestamp='20000101') into IPusrlogs2_l_daily select yuid as username, bcookie from SearchOctopus2_b_daily where datestamp = '20040214' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -execute "INSERT (datestamp='20000101') into IPusrlogs2_l_daily select yuid as username, bcookie from SearchOctopus2_b_daily where datestamp between '20030114' and '20070218' order by username, bcookie;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug -drone_hint 1
+
+
+
+##
+/home/y/libexec/miners_myna/executor -x /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1210805694.mig13.97030/control/query.conf.xml -s 1 -o /d1/myna/chaow/chao_cluster.chaow.1210805694.mig13.97030/1/results/1.collapse.out.gz -b 2 -k 2 -m 3m -d 1 -t DEBUG -e 0 -q chao_cluster.chaow.1210805694.mig13.97030 -l /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1210805694.mig13.97030/logs/querydrone_1_mig14.data.yahoo.com_70912_log -n /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1210805694.mig13.97030/control/querydrone.lines.txt1 -r ^A
+
+#query plan file: -x /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/query.conf.xml
+#stage number: -s 1
+#outputTemplate: -o /d1/myna/chaow/chao_cluster.chaow.1208540489.mig13.61302/1/results/1.collapse.out.gz
+#num of buckets: -b 2
+#maximum memory: -m 500m
+#drone id: -d 1
+#log priority: -t DEBUG
+#aggWarning: -e 0 (true)
+#queryId: -q chao_cluster.chaow.1208540489.mig13.61302
+#logFile: -l /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/logs/querydrone_1_mig14.data.yahoo.com_69965_log
+#countLineFile: -n /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/querydrone.lines.txt1
+#delimiter: -r \001
+
+
+#combiner.pl: stage 2
+ /home/y/libexec/miners_myna/combiner.pl --parallelCombiner 1 --query_subid 1 --cluster_query 0 --drone_count 2 --cluster_xml /net/myna/clusters/chao_cluster/conf/cluster.conf.xml /net/myna/clusters/chao_cluster/conf/general.conf /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/query.conf --drone_id 1 --query_xml /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/query.conf.xml --port 33985 --srv_host mig13.data.yahoo.com --query_id chao_cluster.chaow.1208540489.mig13.61302 --user_id chaow --cluster_name chao_cluster --trace_level DEBUG --delimiter \001 --warehouse myna_test --loader_input_schema /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/insert_input0.schema --drone_count 2 --loaderdrone_file stdin --executor_memory 100m
+
+1) /home/y/bin/gzsort -D 300m -t ^A -T /home/y/tmp +0 -1 /net/mig14.data//d1/myna/chaow/chao_cluster.chaow.1208540489.mig13.61302/0/results/0.collapse.out.gz1.1.gz /net/mig14.data//d1/myna/chaow/chao_cluster.chaow.1208540489.mig13.61302/1/results/1.collapse.out.gz1.1.gz /net/mig14.data//d1/myna/chaow/chao_cluster.chaow.1208540489.mig13.61302/2/results/2.collapse.out.gz1.1.gz  2> | 
+# -D: memory
+# -t: delimiter
+# -T: temp file directory
+# +0: sort starting at column 0
+# -1: sort ending at column 1
+
+
+2) /home/y/bin/myna_sprayer -file stdin -num_buckets 16 -bucket_range 9-16 -partition_alg lcookie -partition_col username -input_schema /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/insert_input0.schema -output_schema /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/control/insert_output0.schema -allow_oob -warehouse myna_test -datestamp 19001164 -feed IPusrlogs -locale none -frequency daily -cookie l -datatype data -log_file /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1208540489.mig13.61302/logs/combiner_1_mig14.data.yahoo.com_70055_log.debug -app_name Myna -app_id chao_cluster.chaow.1208540489.mig13.61302-combiner-1 -log_priority DEBUG
+# -file: file to be sprayed = stdin
+# -num_buckets =16
+# -bucket_range =9-16
+# -partition_alg =lcookie
+# -partition_col =username
+# -input_schema
+# -output_schema
+# -allow_oob: does not warn of data not in the bucket range
+# -warehouse: =myna_test
+# -datestamp
+# -feed
+# -locale
+# -frequency = daily
+# -cookie = l
+# -datatype
+# -log_file
+# -app_name = Myna
+# -app_id = 
+# -log_priority
+
+
+
+
+####################################################################
+# Hash based aggregation
+####################################################################
+
+1) Stage 1: scan -> aggregate
+cgdb --args /home/y/libexec/miners_myna/executor -x /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/control/query.conf.xml -s 1 -o /d1/myna/chaow/chao_cluster.chaow.1209060017.mig13.3735/1/results/1.collapse.out.gz -b 2 -m 500m -d 1 -t DEBUG -e 0 -q chao_cluster.chaow.1209060017.mig13.3735 -l /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/logs/querydrone_1_mig14.data.yahoo.com_56087_log -n /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/control/querydrone.lines.txt1 -r \001
+
+
+2) Stage 2: merge -> aggregate
+cgdb --args /home/y/libexec/miners_myna/executor -o /dev/stdout -x /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/control/query.conf.xml -s 2 -m 100m -i /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/control/combiner.in.list.1 -t DEBUG -e 0 -q chao_cluster.chaow.1209060017.mig13.3735 -n /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/control/combiner.lines.txt.1 -l /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1209060017.mig13.3735/logs/combiner_1_mig14.data.yahoo.com_56173_log -r \001
+# -s: stage = 2;
+# -m: max mem;
+# -i: input file list;
+# -n: count line file;
+
+
+3) Stage 3: concat
+
+
+We even have Alan's Myna video! :)
+mig2:/d1/myna_video
+
+
+#############################################
+# myna test harness
+#############################################
+export MYNA_CLUSTER_NAME=chao_cluster
+miners_myna_tests checkin
+miners_myna_tests -t Aggregate_6 nightly  (test a particular myna query;)
+miners_test_harness nightly.conf
+
+##############################################
+# awacs related
+##############################################
+cat /home/y/conf/miners_wh_punc_myna_test/wh.conf
+scawacs -w myna_test -r "awacs kvpsToFilenameMap"  -file kvps.json  # check awacs;
+awacs ls  -w main -feed ULT -cookie b -domain yahoo -frequency daily  -datestamp 20080409  -datatype schema
+awacs inst -w myna_test -f IPusrlogs2 -cookie l -freq daily
+awacs instances
+awacs list -w myna_test -datestamp '19991104' -feed octopus_512buck -cookie uncookied -freq daily
+scawacs -w ranger -r "mdr select" -file kvps
+awacs list -w ranger -datestamp '19999999' -feed dwRanger -cookie bcookie -freq daily
+awacs commitset/commitsetsparse
+awacs ls -nocommit -w ranger -feed act_apex_targeted_serves_ac4 -cookie l -freq hourly -d 2008110701
+
+strace -s 1000 -o st.log  /home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client event11.data.corp.sk1.yahoo.com --client_ver 2.0 --verbose --trace_level "debug" --sql "select count(*) from SearchOctopus2_b_daily where datestamp='20040214';" --warehouse "myna_test"
+
+ps -ax | grep gzsort | grep -v grep | cut -c1-6 | xargs strace  -o strace_p1 -p
+ps -ax | grep myna_sprayer | grep -v grep | cut -c1-6 | xargs strace -o stace_p2 -p
+grep **** | cut -d" " -f1
+grep -ico
+
+###############################################
+# torque/mom related
+###############################################
+on scheduler box:
+/home/y/bin64/qstat -a
+/home/y/bin64/showq -r
+/home/y/bin64/qdel -p jobid
+pushd /home/y/var
+cd pbs/mom_logs
+grep pid *
+ps axj |grep pid
+ps axwwe
+vmstat 1 (# of page faults)
+vmstat -a
+
+
+
+/home/y/libexec/miners_myna/executor -x /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1211316535.mig13.58248/control/query.conf.xml -s 1 -o /d1/myna/chaow/chao_cluster.chaow.1211316535.mig13.58248/1/results/1.collapse.out.gz -b 2 -k 2 -m 5m -d 1 -t DEBUG -e 0 -q chao_cluster.chaow.1211316535.mig13.58248 -l /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1211316535.mig13.58248/logs/querydrone_1_mig14.data.yahoo.com_35114_log -n /net/wares13.data/myna/central//chao_cluster/chaow/chao_cluster.chaow.1211316535.mig13.58248/control/querydrone.lines.txt1 -r \001
+
+// load some data from main warehouse to myna_test;
+tejas_mn: awacs ls -w main -feed myna_perf_SearchOctopus -cookie b -datestamp 20050201   (-bucket 1)  (-datatype schema)
+tejas_mn: awacs insert -w myna_test  -feed  myna_perf_SearchOctopus -cookie b -datestamp 20000101 -domain yahoo -action none -dstid none -srcid none  (-bucket 1) (-datatype schema)
+tejas_mn: awacs commitfile -w myna_test -feed myna_perf_SearchOctopus -cookie b -datestamp 20000101 -domain yahoo -action none -dstid none -srcid none  (-bucket 1) (-datatype schema)
+tejas_mn: awacs commitset -w myna_test -feed myna_perf_SearchOctopus -cookie b -datestamp 20000101 -domain yahoo
+awacs instances
+
+another field: /net/dw27/warehouse/stores/budlite/repositoryRoot/ULT/b/yahoo/133/133/view/20080515/
+
+tejas_mn: octopus_512buck_uncookied_daily     | timestamp        |
+tejas_mn: post_orion_cm_click_5m              | serve_id
+tejas_mn: myna_cost_impression_15m            | account_id       |
+
+# large queries:
+myna -w myna_test -execute "select count(*) from myna_perf_SearchOctopus_b_daily where datestamp = '20000101';" -verbose -trace_level debug -cluster chao_cluster
+(306017279: 3 hundred millions);
+myna -execute "delete from IPusrlogs2_l_daily where datestamp='19001164';"  -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+myna -execute "INSERT (datestamp='19001164') into IPusrlogs2_l_daily select yuid as username, bcookie from myna_perf_SearchOctopus_b_daily where datestamp = '20000101' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+myna -execute "INSERT (datestamp='19001164') into IPusrlogs2_l_daily select yuid as username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookie, ydodfilter, size, status, mediacookie, afcookie, spaceid, referertoplevel, refererstartindex, adinfo, harmonyquery, adultfilter, catncats, catnsites, dirncats, dirnsites, cachedresult, googlesitematches, videositematches, insideyahoo, languagesetting, moresitesfrom, numresultssetting, googleonebox, toplinkcommercialinfo, overtureresulthostinfo, numrelatedsearches, numshortcutresults, shortcutflag, shortcutproperty, shortcutquery, spellingsuggestion, sponsorpartnername, spellingcorrection, sponsorpageinfo, sponsorresultinfo, version, lowerbrowserversion, testid, insideyahootracking, hotlistavailable, notitleavailable, noabstractavailable, titlesandabstracts, sponsorresultreturned, shortcutspecial, paidinclusion, domaincom, advancedsearch, querytype, insideyahookeyword, iylatency, olatency, emptyqueries, fpnewsmodule, fpmailmodule, fpmarketing, searchcluster, sponsorresultstop, sponsorresultseast, sponsorresultsbottom, safesearchlock, mmslatency, partnername, xforwardedfor, fullcoverage, eastaudiovideo, visitedresults, mysearch, mysearchsavedrank, blockedresultcount, blockedresultrank, blockedresulthidden, resultcount from myna_perf_SearchOctopus_b_daily where datestamp = '20000101' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+myna -execute "INSERT (datestamp='19001164') into IPusrlogs2_l_daily select yuid as username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookie from myna_perf_SearchOctopus_b_daily where datestamp = '20000101' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -execute "INSERT (datestamp='19001164') into IPusrlogs2_l_daily select username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookie from IPusrlogs2_b_daily where datestamp = '19001164' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -execute "INSERT (datestamp='19001165') into IPusrlogs2_b_daily select yuid as username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookie, ydodfilter, size, status, mediacookie, afcookie, spaceid, referertoplevel, refererstartindex, adinfo, harmonyquery, adultfilter, catncats, catnsites, dirncats, dirnsites, cachedresult, googlesitematches, videositematches, insideyahoo, languagesetting, moresitesfrom, numresultssetting, googleonebox, toplinkcommercialinfo, overtureresulthostinfo, numrelatedsearches, numshortcutresults, shortcutflag, shortcutproperty, shortcutquery, spellingsuggestion, sponsorpartnername, spellingcorrection, sponsorpageinfo, sponsorresultinfo, version, lowerbrowserversion, testid, insideyahootracking, hotlistavailable, notitleavailable, noabstractavailable, titlesandabstracts, sponsorresultreturned, shortcutspecial, paidinclusion, domaincom, advancedsearch, querytype, insideyahookeyword, iylatency, olatency, emptyqueries, fpnewsmodule, fpmailmodule, fpmarketing, searchcluster, sponsorresultstop, sponsorresultseast, sponsorresultsbottom, safesearchlock, mmslatency, partnername, xforwardedfor, fullcoverage, eastaudiovideo, visitedresults, mysearch, mysearchsavedrank, blockedresultcount, blockedresultrank, blockedresulthidden, resultcount from myna_perf_SearchOctopus_b_daily where datestamp = '20000101' and username is not NULL order by bcookie;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+# current queries:
+# select >80 columns;
+myna -execute "INSERT (datestamp='19001165') into IPusrlogs2_l_daily select username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookie ydodfilter, size, status, mediacookie, afcookie, spaceid, referertoplevel, refererstartindex, adinfo, harmonyquery, adultfilter, catncats, catnsites, dirncats, dirnsites, cachedreult, googlesitematches, videositematches, insideyahoo, languagesetting, moresitesfrom, numresultssetting, googleonebox, toplinkcommercialinfo, overtureresulthostinfo, numrelatedseaches, numshortcutresults, shortcutflag, shortcutproperty, shortcutquery, spellingsuggestion, sponsorpartnername, spellingcorrection, sponsorpageinfo, sponsorresultinfo, version, loerbrowserversion, testid, insideyahootracking, hotlistavailable, notitleavailable, noabstractavailable, titlesandabstracts, sponsorresultreturned, shortcutspecial, paidinclusion, dmaincom, advancedsearch, querytype, insideyahookeyword, iylatency, olatency, emptyqueries, fpnewsmodule, fpmailmodule, fpmarketing, searchcluster, sponsorresultstop, sponsorresultsast, sponsorresultsbottom, safesearchlock, mmslatency, partnername, xforwardedfor, fullcoverage, eastaudiovideo, visitedresults, mysearch, mysearchsavedrank, blockedresultcount, blckedresultrank, blockedresulthidden, resultcount from IPusrlogs2_b_daily where datestamp = '19001165' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+# select 10 columns;
+myna -execute "INSERT (datestamp='19001164') into IPusrlogs2_l_daily select username, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, youngbcookiefrom IPusrlogs2_b_daily where datestamp = '19001164' order by 1;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+# select 2 columns;
+myna -execute "INSERT (datestamp='19001163') into IPusrlogs2_l_daily select username, bcookie from IPusrlogs2_b_daily where datestamp = '19001164' order by 1;" -w myn_test -verbose -cluster chao_cluster  -trace_level debug
+
+miners_monster_tools (yfilesize)
+ysar: plot cpu usage across time;
+
+
+# mdr related (update partitionCol and partitionFunc
+yinst ls -files miners_wh_punc_myna_test-0.0.3 # to find out where the awacs conf files is;
+vi mdr.conf # to find out where the mdr database is installed;
+
+export MYNA_SSH_IDENTITY=/home/dp/.ssh/identity
+myna -sqlfile ~/t.sql -cluster stgmyna1 -w apexjaguarstg -verbose
+export whName=apexjaguarstg
+stgjagmyna2% mdr -w apexjaguarstg select dsd materializes asc \'feed_post_tp_yoo_gd_serve\' | cut -d '"' -f 2
+## update mdr database;
+mysql -umdr -pcommit MDR # login
+select * from MDR_DataSetDescriptor where c_name = 'tfeed64_daily' \G;
+update MDR_DataSetDescriptor set c_PartitionByCols=NULL where oid = 320399 and c_Name = 'tfeed64_daily' and version = 7;
+select user,password,host from mysql.user;
+
+
+#####################################################################
+# setup AC4 testing environment;
+######################################################################
+awacs yapache server (puns) : ac4-devmyna-001;
+mdr database : ac4-devmdr-002;  root/emptypwd;
+awacs client (punc): ac4-devmyna-001;  // scawacs commands;
+
+
+# awacs related;
+awacs ls -w myna_test -feed myna_perf_SearchOctopus -cookie b -datestamp 20000101 -bucket 1 (mig.data sunnyvale colo)
+awacs -w ranger allfeeds  (ac4 colo)
+awacs -w ranger select warehouse 
+mdr -w $whName select warehouse | cut -d '"' -f 2
+yinst i ports/tidy
+tidy -xml /net/ods70/ranger/wh_srvr/awacs_ranger/conf/wh_svr.xml | more
+vi /home/y/conf/miners_wh_client_ranger/wh.conf
+awacs -w ranger query mdrStoreForFeedDatatype --feed dwRanger --datatype data
+awacs -w ranger query mdrStoreForFeedDatatype --feed dwRanger --datatype schema
+
+awacs -w ranger whName query help --verbose
+#yinst restart yapache (should use the next one to restart yapache)
+yinst restart miners_wh_puns
+
+# myna cluster related;
+myna_admin -cmd install -cluster ac4_cluster -config ac4.conf -branch test
+
+awacs insert -w ranger -feed  dwRanger -cookie b -datestamp 19999999 -bucket 1 (-datatype schema)
+
+myna -w myna_test chao_cluster -execute "explain insert (datestamp = '19999999') into IPusrlogs2_b_daily select nbcookie as bcookie from tfeed64_daily where datestamp = '20040629' order by nbcookie;" -verbose
+cgdb --args /home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "insert (datestamp = '19999999') into IPusrlogs2_b_daily select nbcookie as bcookie from tfeed64_daily where datestamp = '20040629' order by nbcookie;" --warehouse myna_test
+
+# ac4 hashfnv testing queries;
+myna -w ranger -execute "delete from dwRanger_l_daily where datestamp = '19999995';" -verbose -cluster ac4_cluster
+myna -w ranger -execute "delete from dwRanger_l_daily where datestamp = '19999996';" -verbose -cluster ac4_cluster
+myna -w ranger -execute "delete from dwRanger_l_daily where datestamp = '19999997';" -verbose -cluster ac4_cluster
+# select 2 columns;
+myna -w ranger -execute "INSERT (datestamp='11111111') into dwRanger_l_daily select timestamp, bcookie from dwRanger_b_daily where datestamp = '19999999' and bcookie is not null order by timestamp;" -verbose -cluster ac4_cluster -drone_hint 32
+# select 10 columns;
+myna -w ranger -execute "INSERT (datestamp='11111111') into dwRanger_l_daily select yuid, bcookie, recordtype, timestamp, duration, profile, ip, os, browser, ydodfilter from dwRanger_b_daily where datestamp = '19999999' and bcookie is not null order by timestamp;" -verbose -cluster ac4_cluster -drone_hint 32
+#select 20 columns;
+myna -w ranger -execute "INSERT (datestamp='11111111') into dwRanger_l_daily select recordtype,bcookie,timestamp,duration,yuid,profile,ip,os,browser,youngbcookie,ydodfilter,size,status,mediacookie,afcookie,spaceid,referertoplevel,refererstartindex,adinfo,harmonyquery from dwRanger_b_daily where datestamp = '19999999' and bcookie is not null order by timestamp;" -verbose -cluster ac4_cluster -drone_hint 32
+#select 50 columns;
+myna -w ranger -execute "INSERT (datestamp='11111111') into dwRanger_l_daily select recordtype,bcookie,timestamp,duration,yuid,profile,ip,os,browser,youngbcookie,ydodfilter,size,status,mediacookie,afcookie,spaceid,referertoplevel,refererstartindex,adinfo,harmonyquery,adultfilter,catncats,catnsites,dirncats,dirnsites,cachedresult,googlesitematches,videositematches,insideyahoo,languagesetting,moresitesfrom,numresultssetting,googleonebox,toplinkcommercialinfo,overtureresulthostinfo,numrelatedsearches,numshortcutresults,shortcutflag,shortcutproperty,shortcutquery,spellingsuggestion,sponsorpartnername,spellingcorrection,sponsorpageinfo,sponsorresultinfo,version,lowerbrowserversion,testid,insideyahootracking,hotlistavailable from dwRanger_b_daily where datestamp = '19999999' and bcookie is not null order by timestamp;" -verbose -cluster ac4_cluster -drone_hint 32
+# select 100 columns;
+myna -w ranger -execute "INSERT (datestamp='11111111') into dwRanger_l_daily select recordtype,bcookie,timestamp,duration,yuid,profile,ip,os,browser,youngbcookie,ydodfilter,size,status,mediacookie,afcookie,spaceid,referertoplevel,refererstartindex,adinfo,harmonyquery,adultfilter,catncats,catnsites,dirncats,dirnsites,cachedresult,googlesitematches,videositematches,insideyahoo,languagesetting,moresitesfrom,numresultssetting,googleonebox,toplinkcommercialinfo,overtureresulthostinfo,numrelatedsearches,numshortcutresults,shortcutflag,shortcutproperty,shortcutquery,spellingsuggestion,sponsorpartnername,spellingcorrection,sponsorpageinfo,sponsorresultinfo,version,lowerbrowserversion,testid,insideyahootracking,hotlistavailable,notitleavailable,noabstractavailable,titlesandabstracts,sponsorresultreturned,shortcutspecial,paidinclusion,domaincom,advancedsearch,querytype,insideyahookeyword,iylatency,olatency,emptyqueries,fpnewsmodule,fpmailmodule,fpmarketing,searchcluster,sponsorresultstop,sponsorresultseast,sponsorresultsbottom,safesearchlock,mmslatency,partnername,xforwardedfor,fullcoverage,eastaudiovideo,visitedresults,mysearch,mysearchsavedrank,blockedresultcount,blockedresultrank,blockedresulthidden,resultcount,firstresultindex,lastresultindex,displaymode,category,emailsentto,noofresultsentto,emailcc,bazookacategoryid,dynamictabid,units,spmmetrics,yqview,yqtype,yqpg,yqurl,ylatency,iysup from dwRanger_b_daily where datestamp = '19999999' and bcookie is not null order by timestamp;" -verbose -cluster ac4_cluster -drone_hint 32
+
+# HBA query for new MM;
+myna -w ranger -execute "select bcookie,referertoplevel,partnername,sum(cast(timestamp as integer)),count(*) from dwRanger_b_daily where datestamp = '19999999' group by bcookie,referertoplevel,partnername;" -verbose -cluster ac4_cluster -drone_hint 32
+
+#NFS mount
+1) change /etc/exports
+2) sudo kill -HUP `sudo cat /var/run/mountd.pid`
+
+
+#nightly regression
+# on event6.data.corp.sk1
+sudo su dp  (dp's shell will be used)
+export MYNA_SSH_IDENTITY=/home/dp/dp-identity
+or: 
+(in my shell)
+export MYNA_SSH_IDENTITY=/home/dp/dp-identity
+sudo -u dp "some command"  (chaow's shell will be used)
+
+
+/tmp/miners_test_harness_log_1213862244
+ssh event6.data.corp.sk1
+sudo visudo  (add: chaow)
+sudo -u kidave crontab -l
+MODE=def /usr/local/bin/sudo -u yahoo /home/y/bin/ymb -check_pkgs 1 nightly_myna.baf
+
+
+#testing insert queries;
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19999999') into tfeed64_2_daily select yuid, ip, nbcookie from tfeed64_daily where datestamp = '20040629';" --warehouse myna_test
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19999999') into tfeed64_2_daily select bcookie as nbcookie from SearchOctopus2_b_daily where datestamp = '20040214';" --warehouse myna_test
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19999999') into IPusrlogs2_b_daily select nbcookie as bcookie from tfeed64_daily where datestamp = '20040629' order by 1;" --warehouse myna_test
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19999999') into IPusrlogs2_b_daily select bcookie from SearchOctopus2_b_daily where datestamp = '20040214' order by 1;" --warehouse myna_test
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19999999') into IPusrlogs2_l_daily select yuid as username from SearchOctopus2_b_daily where datestamp = '20040214' order by 1;" --warehouse myna_test
+
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig13.data.yahoo.com --client_ver 2.0 --verbose --trace_level debug --sql "explain insert (datestamp = '19991214') into octopus_512buck_uncookied_daily (bcookie, timestamp) select cast(bcookie as varchar(20)), cast(timestamp as varchar(20)) from SearchOctopus2_b_daily where datestamp = '20040214' order by 1;" --warehouse myna_test
+
+# queuedb related; (e.g., mig2 as queue db server)
+mysql -umyna -pmyna
+use chao_cluster_cluster
+show processlist;
+select count(*) from queryQueue;
+delete from queryQueue;
+
+cgdb --args /home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig11.data.yahoo.com --client_ver 2.0 --verbose --output /net/dw348/warehouse_myna_test/central/chaow/25488.QueryInsertNoJoin_22/testResults.gz --trace_level debug --sql "INSERT (datestamp = '1000128') INTO octopus_512buck_uncookied_daily SELECT concat(lower(Bcookie), upper(YUID)) AS timestamp, concat(cast(size as char), recordtype) AS sizercrd FROM SearchOctopus2_b_daily WHERE (datestamp = '20040214' OR datestamp = '20040215') AND bcookie IS NOT NULL;" --warehouse myna_test
+
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig11.data.yahoo.com --client_ver 2.0 --verbose --output /net/dw348/warehouse_myna_test/central/chaow/25488.QueryInsertNoJoin_22/testResults.gz --trace_level debug --sql "INSERT (datestamp = '1000127') INTO octopus_512buck_uncookied_daily SELECT Bcookie AS timestamp, recordtype AS sizercrd FROM SearchOctopus2_b_daily WHERE (datestamp = '20040214' OR datestamp = '20040215') AND bcookie IS NOT NULL;" --warehouse myna_test
+
+/home/y/libexec/miners_myna/myna_fe --cluster chao_cluster --cluster_dir /net/myna/clusters/chao_cluster --client_os FreeBSD --client mig11.data.yahoo.com --client_ver 2.0 --verbose --output /net/dw348/warehouse_myna_test/central/chaow/25488.QueryInsertNoJoin_22/testResults.gz --trace_level debug --sql "INSERT (datestamp = '1000127') INTO octopus_512buck_uncookied_daily SELECT concat(Bcookie, yuid) AS timestamp, recordtype AS sizercrd FROM SearchOctopus2_b_daily WHERE (datestamp = '20040214' OR datestamp = '20040215') AND bcookie IS NOT NULL;" --warehouse myna_test
+
+myna -cluster chao_cluster -trace_level debug verbose -execute "delete from octopus_512buck_uncookied_daily where datestamp = '1000128';" -warehouse myna_test
+
+# keydb (if you already have a non-keydb cluster
+1) yinst i ysecure
+2) sudo mkdir -p /home/y/conf/keydb
+3) sudo /home/y/bin/keydbkeygen myna.chao_cluster qdbpwd
+4) cat /home/y/conf/keydb/myna.chao_cluster.keydb (to check)
+
+5) on queuedb box:
+	mysql -uroot -p
+	grant all on chao_cluster_cluster.* to chao_cluster@'207.126.226.160' identified by 'wcYhm_bH5tA.3Yz01PDJLGPxu0Jwz5yTfq6dja8Poi0-';
+	
+
+# C++ debug
+valgrind: memeory debugger;
+valgrind --leak-check=yes myprog arg1 arg2
+export NO_MM=1; gmake MODE=dbg (rebuild without mm)
+
+
+#igor set up;
+
+# example 1) new moab, torque_node packages;
+a-1) change README.xxx, xxx.yicf;
+   gmake MODE=def package-release
+
+   push packages to dist;
+	 dist_install xxx;
+
+a) go to event6:
+	 update /net/myna/ver_conf/version.conf -> add a 221_drop1;
+
+b) go to igor:
+   made changes to scheduler app -> rules -> select 2.2.1 -> made change -> save -> tag to 221_drop1;
+	 similarly, made changes to drone app;
+
+	 made changes to four sets (myna.set.release.myna_drone 
+	 myna.set.release.myna_fe 
+	 myna.set.release.myna_queuedb 
+	 myna.set.release.myna_sched ) -> select 2.2.1 -> all tag to 221_drop1;
+
+c) to verify:
+   1) yinst restore -igor -dryrun -noadmin -ir @myna.hosts.release -igor_tag myna.221_drop1  (IMPORTANT: -noadmin is a must!!)
+	 (you should see packages updated)
+
+	 2) yinst restore -igor  -noadmin -ir @myna.hosts.release -igor_tag myna.221_drop1 (do the real installation)
+
+	 #launch a testing query;
+	 3) myna -w myna_test -execute "select distinct datestamp from SearchOctopus2_b_daily;" -cluster ajaycluster 
+
+d) go to event6
+   1) install (update) nightly cluster
+
+	 2) launch nightly regression
+
+
+# performance profiling
+pstack pid | c++filt
+
+gprof
+
+
+
+myna -cluster savantmc2 -warehouse jaguarodsint2 -execute "delete from act_yoo_targeted_clicks_b_hourly where datestamp = '8111111118';" -verbose
+myna -cluster savantmc2 -warehouse jaguarodsint2 -execute "delete from act_yoo_targeted_clicks_l_hourly where datestamp = '8222222228';" -verbose
+myna -sqlfile ./act.sql -cluster jaguarmcdev2 -warehouse jaguarodsint2 -udf_decl /net/ods9/INT_LZ2/udf/miners_jaguar_udfs/3.0.2/jaguarudfs.decl -udf_decl /net/ods9/INT_LZ2/udf/miners_jaguar_act_yoo_udfs/2.0.2/actyooudfs.decl -udf_decl /net/ods9/INT_LZ2/udf/miners_jaguar_act_udfs/2.1.0/actudfs.decl -verbose
+myna -cluster savantmc2 -warehouse jaguarodsint2 -execute "select count(*) from act_yoo_targeted_clicks_b_hourly where datestamp = '8111111118';" -verbose
+myna -cluster savantmc2 -warehouse jaguarodsint2 -execute "select count(*) from act_yoo_targeted_clicks_l_hourly where datestamp = '8222222228';" -verbose
+awacs -w jaguarodsint2 ls -f act_yoo_targeted_clicks -freq hourly -d 8111111118 -cookie b
+awacs -w jaguarodsint2 ls -f act_yoo_targeted_clicks -freq hourly -d 8222222228 -cookie l
+
+# original query
+/net/ods9/myna/central/savantmc2/savantmc2/chaow/savantmc2.chaow.1217381011.ac4-qabcpsage-003.26907/logs
+/net/ods9/myna/central/savantmc2//savantmc2/chaow/savantmc2.chaow.1217446065.ac4-qabcpsage-003.52098/logs
+# test query (without order by)
+/net/ods9/myna/central/savantmc2//savantmc2/chaow/savantmc2.chaow.1217383361.ac4-qabcpsage-003.92682/logs
+# test query (with order by)
+/net/ods9/myna/central/savantmc2//savantmc2/chaow/savantmc2.chaow.1217383839.ac4-qabcpsage-003.28221/logs
+
+
+
+# "interesting/bad" queries;
+/tmp/miners_test_harness_log_1217408060
+insert (datestamp = '20060124') into SearchOctopus2_b_daily (bcookie) select os from SearchOctopus2_b_daily where datestamp in ('20040214', '20040101') order by os;
+
+myna -execute "explain INSERT (datestamp='88888888') into cm_click_daily(clickid, cookie) select concat(yuid, bcookie) as clickid, bcookie as cookie from SearchOctopus2_b_daily where datestamp = '20040214' order by clickid;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+
+#clustered insert query;
+myna -execute "explain INSERT (datestamp='88888888') into cm_click_daily(clickid, fullclickid) select reverse(a.bcookie) as clickid, b.bcookie as bclickid from SearchOctopus2_b_daily as a JOIN IPusrlogs2_b_daily as b ON a.bcookie = b.bcookie where a.datestamp = '20040214' and b.datestamp = '20040214' and clickid is not NULL order by clickid; INSERT (datestamp='99999999') into cm_click_daily(clickid, fullclickid) select reverse(b.bcookie) as clickid, a.bcookie as fullclickid from SearchOctopus2_b_daily as a JOIN IPusrlogs2_b_daily as b ON a.bcookie = b.bcookie where a.datestamp = '20040214' and b.datestamp = '20040214' and clickid is not NULL order by clickid;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -execute "explain INSERT (datestamp='99999999') into cm_click_daily(clickid) select concat(a.bcookie, b.bcookie) as clickid from SearchOctopus2_b_daily as a JOIN IPusrlogs2_b_daily as b ON a.bcookie = b.bcookie where a.datestamp = '20040214' and b.datestamp = '20040214' and clickid is not NULL order by clickid;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+
+myna -execute "delete from cm_click_daily where datestamp = '88888888';" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+
+myna -w myna_test -cluster chao_cluster -execute "insert (datestamp = '20060124') into SearchOctopus2_b_daily (bcookie) select os from SearchOctopus2_b_daily where datestamp in ('20040214') order by os;" -verbose -trace_level debug
+myna -w myna_test -cluster chao_cluster -execute "delete from SearchOctopus2_b_daily where datestamp = '20060124';" -verbose -trace_level debug
+
+
+myna -w apexjaguarstg -cluster stgmyna1 -execute "delete from post_mapping_annotated_ks_click_5m where datestamp = '888888888888';" -verbose -trace_level debug
+myna -sqlfile test.sql  --cluster stgmyna1 -udf_decl /net/jag9/pipeline_base_dir/udf/miners_jaguar_ims_udfs/3.0.1/subs.decl -udf_decl /net/jag9/pipeline_base_dir/udf/miners_jaguar_ks_udfs/2.0.7/ksudfs.decl --warehouse apexjaguarstg -drone_hint 1 -ssh_retry_timeout 10 -verbose
+
+
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1217885574.stgsavmyna37.8101/logs
+
+
+# warehouse statistics;
+dwRanger: dwRanger_b_daily;
+19999999: 306017279 
+20000000: 200000000
+20000001: 150000000
+20000002: 100000000
+20000003: 40000000
+20000004: 20000000
+20000005: 10000000
+
+
+# torque/moab job array feature;
+job array
+pbs_submit
+
+yinst ssh "ps ax | grep executor | grep -v grep | cut -c1-6 | xargs kill" -h ac4-devmyna-[002-009].ysm.ac4
+
+
+# apex queries (expression cache)
+fe: stgsavmyna37.ysm.ac4.yahoo.com
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/a.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_triplet_udfs/2.0.5/TripletANP.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_cnt_tactic_udfs/1.0.1/ConnectionTactic.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_act_udfs/2.1.5/actudfs.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -execute "delete from network_report_ngd_15m where datestamp = '300809170000';"
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/c.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_er_udfs/3.0.3/SortList.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ims_udfs/3.0.1/subs.decl -verbose
+
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1222209647.stgsavmyna37.45961/control : integer rmHop()
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1222206093.stgsavmyna37.33438: varchar IPConvert
+
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/d.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ks_udfs/2.0.7/ksudfs.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/e.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ks_udfs/2.0.7/ksudfs.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/f.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_am_ngd_udfs/3.0.2/rmHop.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/g.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_am_udfs/3.0.2/virtualHop.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/h.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_triplet_udfs/2.0.5/TripletANP.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_act_udfs/2.1.5/actudfs.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_cnt_tactic_udfs/1.0.1/ConnectionTactic.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/i.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ks_udfs/2.0.7/ksudfs.decl -verbose
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/j.sql -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_cnt_tactic_udfs/1.0.1/ConnectionTactic.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_path_udfs/2.0.3/Path.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_act_udfs/2.1.5/actudfs.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_er_udfs/3.0.3/SortList.decl -verbose
+
+
+/home/y/libexec/miners_m
+yna/executor -x /net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1222408371.stgsavmyna37.38874/control/query.conf.xml -s 1 -o /home/myna/dp/stgmyna1
+.dp.1222408371.stgsavmyna37.38874/7/results/7.collapse.out.gz -b 68 -k 68 -m 1200m -d 7 -t PERF -e 0 -q stgmyna1.dp.1222408371.stgsavmyna37.38874 -l /
+net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1222408371.stgsavmyna37.38874/logs/querydrone_7_stgsavmyna35.ysm.ac4.yahoo.com_171_log -n /net/myna/
+central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1222408371.stgsavmyna37.38874/control/querydrone.lines.txt7 -r \001 
+
+
+# scheduler problem
+/home/y/bin64/qmgr -c 'l s'
+sudo /home/y/bin64/mdiag -S -v
+sudo kill -9 pbs_server
+yinst start miners_torque_server64
+
+/home/y/bin64/pbsnodes
+
+myna -execute "insert (datestamp = '19001164') into IPusrlogs_l_daily select yuid as username, bcookie, timestamp, recordtype, ip, os, browser, ydodfilter, size,status,mediacookie,afcookie,spaceid,adinfo,harmonyquery,adultfilter,catncats,catnsites,dirncats,dirnsites,cachedresult,googlesitematches,insideyahoo,languagesetting,moresitesfrom,numresultssetting,googleonebox,toplinkcommercialinfo,overtureresulthostinfo,numrelatedsearches,numshortcutresults,shortcutflag,shortcutproperty,shortcutquery,spellingsuggestion,sponsorpartnername,spellingcorrection,sponsorpageinfo,sponsorresultinfo,version, lowerbrowserversion,testid,insideyahootracking,hotlistblendinginfo,sponsorresultreturned,shortcutspecial,paidinclusion,domaincom,searchtype,startindex,inputencoding,languagerestrictionflag,referer,dirsearchformat,numresultsperpage,searchword,categoryrestriction,andsearchword,andsearchwordlocation,countryrestriction,updatetimerestriction ,excludekeywords,excludekeywordslocation,searchlink,languagerestriction ,urladultfilter,orsearchword,orsearchwordlocation,phrasesearchword,phrasesearchwordlocation,similarpagesearch,domainrestriction,domainrestrictionflag,searchboxlocation,cannedsearch,overturepageargs,totalresults,resultposition,relatedsearchword,insideyahooproperty,insideyahookeyword,insideyahoolabel,referertoplevel,destinationurl from SearchOctopus2_b_daily where datestamp in ('20040214', '20040215', '20040216', '20040217', '20040218') order by 1;"  -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+myna -execute "delete from IPusrlogs_l_daily where datestamp = '19001164';" -w myna_test -verbose -cluster chao_cluster -trace_level debug
+
+# new apex queries;
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/b.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_er_udfs/5.0.0/SortList.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ims_udfs/5.0.0/subs.decl
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -execute "delete from ngd_preagg_5m where datestamp = '100810150545';" -verbose
+
+b.sql
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224265650.stgsavmyna37.77925/logs
+
+c.sql: virtualHop()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/c.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_am_udfs/5.0.0/virtualHop.decl
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224628467.stgsavmyna37.30821/logs
+
+d.sql SortList()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/d.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_er_udfs/5.0.0/SortList.decl
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224630188.stgsavmyna37.32455/logs
+
+e.sql rmHop()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/e.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_am_ngd_udfs/5.0.0/rmHop.decl
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224725282.stgsavmyna37.93635
+
+f.sql StrSub()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/f.sql -verbose -udf  /net/jag9/pipeline_base_dir/udf/miners_jaguar_ims_udfs/5.0.0/subs.decl
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224726151.stgsavmyna37.94226
+
+g.sql GetMigrationBits(), HexToDec(), IPConvert()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/g.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_ks_udfs/4.0.3/ksudfs.decl 
+/net/myna/central/stgmyna1/stgmyna1/dp/stgmyna1.dp.1224780461.stgsavmyna37.7754/
+
+h.sql  TripletANP(), GeoCountry(), ConnectionTactic()
+sudo -u dp myna -cluster stgmyna1 -w apexjaguarstg -sqlfile /tmp/h.sql -verbose -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_triplet_udfs/4.0.0/TripletANP.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_act_udfs/4.0.1/actudfs.decl -udf /net/jag9/pipeline_base_dir/udf/miners_jaguar_cnt_tactic_udfs/3.0.0/ConnectionTactic.decl
+
+
+
+%s/use_cache=\"1\"/use_cache=\"0\"/g
+%s/use_cache=\"0\"/use_cache=\"1\"/g
+%s/\"dynamic\"/\"dynamic\" use_cache=\"0\"/g
+
+
+
+# column-based buffer management
+select  A.username, B.bcookie from  IPusrlogs2_b_daily as A join IPusrlogs2_b_daily as B on (A.bcookie=B.bcookie) where A.datestamp = '19001165'  and B.datestamp='19001164' and A.username != B.username limit 5;
+
+# complex query plan;
+a) myna -execute "SELECT AB.bcookie, CD.yuid, AB.duration, CD.error FROM (SearchOctopus2_b_daily AS A MERGE SearchOctopus2_b_daily AS B) AS AB JOIN (link_octopus2_b_daily AS C MERGE link_octopus2_b_daily AS D) AS CD ON (AB.bcookie = CD.bcookie) WHERE A.datestamp = '20040214' AND B.datestamp = '20040216' AND C.datestamp = '20040627' AND D.datestamp = '20040628' ORDER BY AB.duration;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+/net/mig11.data/d1/myna/central//chao_cluster/chaow/chao_cluster.chaow.1225226558.mig11.43385/logs
+
+b) myna -execute "INSERT (datestamp = '19991210') INTO SearchOctopus2_b_daily SELECT DISTINCT recordtype,bcookie,timestamp,duration,yuid,profile,ip,os,browser FROM SearchOctopus2_b_daily WHERE datestamp = '20040215' and bcookie != 'abc' ORDER BY bcookie,timestamp;INSERT (datestamp = '19991211') INTO SearchOctopus2_b_daily SELECT bcookie,googlesitematches,insideyahoo,SUM(sponsorresultreturned) AS SUMST,moresitesfrom,numresultssetting,googleonebox,toplinkcommercialinfo,COUNT(overtureresulthostinfo) AS CNT FROM SearchOctopus2_b_daily WHERE datestamp = '20040215' GROUP BY bcookie,googlesitematches,googleonebox,toplinkcommercialinfo,insideyahoo,moresitesfrom,numresultssetting HAVING CNT > 0 ORDER BY bcookie;INSERT (datestamp = '19991212') INTO link_octopus2_l_daily SELECT DISTINCT yuid,dirncats,dirnsites,domainrestriction,domainrestrictionflag,COUNT(destinationurl) AS CNT FROM SearchOctopus2_b_daily WHERE datestamp = '20040215' GROUP BY yuid,dirncats,dirnsites,domainrestriction,domainrestrictionflag ORDER BY yuid;INSERT (datestamp = '19991214') INTO SearchOctopus2_b_daily SELECT bcookie,timestamp,duration,yuid FROM SearchOctopus2_b_daily WHERE datestamp = '20040215' ORDER BY bcookie,yuid,duration;" -w myna_test -verbose -cluster chao_cluster  -trace_level debug
+/net/mig11.data/d1/myna/central/chao_cluster/chaow/chao_cluster.chaow.1225149242.mig11.87514/logs
+
+
+# HBA
+myna -w myna_test -execute "select yuid, count(*) from SearchOctopus2_b_daily where datestamp = '20040214' and yuid is not null group by yuid;" -verbose -trace_level debug -cluster chao_cluster -delimiter " "
+/net/mig11.data/d1/myna/central//chao_cluster/chaow/chao_cluster.chaow.1225741890.mig11.10875/logs
+
+# SBA
+
+yinst ssh "sudo rm /home/y/libexec/miners_myna/myna_fe; sudo ln -s /homes/chaow/dev_buffer_management/yahoo/miners/myna/fe/FreeBSD.4.11.def/myna_fe /home/y/libexec/miners_myna/myna_fe" -h mig11.data
+yinst ssh "sudo rm /home/y/libexec/miners_myna/executor; sudo ln -s /homes/chaow/dev_buffer_management/yahoo/miners/myna/executor/FreeBSD.4.11.def/executor /home/y/libexec/miners_myna/executor" -h mig[12-14].data
+yinst ssh "sudo rm /home/y/libexec/miners_myna/executor; sudo ln -s /homes/chaow/dev_yanz/yahoo/miners/myna/executor/FreeBSD.4.11.def/executor /home/y/libexec/miners_myna/executor" -h mig[12-14].data
+
+yinst ssh "sudo rm /home/y/libexec/miners_myna/executor; sudo ln -s /homes/chaow/dev_myna_22_1/yahoo/miners/myna/executor/FreeBSD.4.11.dbg/executor /home/y/libexec/miners_myna/executor" -h mig[12-14].data
+yinst ssh "sudo rm /home/y/libexec/miners_myna/myna_fe; sudo ln -s /homes/chaow/dev_myna_22_1/yahoo/miners/myna/fe/FreeBSD.4.11.dbg/myna_fe /home/y/libexec/miners_myna/myna_fe" -h mig11.data
+
+# Udf cache
+yinst ssh "sudo rm /home/y/libexec/miners_myna/myna_fe; sudo ln -s /homes/chaow/dev_udfcache_test/yahoo/miners/myna/fe/FreeBSD.4.11.def/myna_fe /home/y/libexec/miners_myna/myna_fe" -h mig11.data
+yinst ssh "sudo rm /home/y/libexec/miners_myna/executor; sudo ln -s /homes/chaow/dev_udfcache_test/yahoo/miners/myna/executor/FreeBSD.4.11.def/executor /home/y/libexec/miners_myna/executor" -h mig[12-14].data
+
+# single-drone stage ticket
+myna -execute "explain insert(datestamp = '11111111') INTO IPusrlogs2_l_daily SELECT bcookie, yuid as username, srcid, dstid, action, ip FROM ULT2_yahoo_b_daily AS T1 MERGE ULT2_yahoo_b_daily AS T2 WHERE bcookie != 'abc' and T1.datestamp = '20040626' AND T2.datestamp = '20040627' and T1.dstid != '16331' and T2.dstid != '16331' ORDER BY 2;" -verbose -w myna_test -cluster chao_cluster
+
+
+#Phase 1 leftover, Spray
+myna -execute "explain insert(datestamp = '11111111') INTO IPusrlogs2_l_daily SELECT bcookie, yuid as username, srcid, dstid, action, ip FROM ULT2_yahoo_b_daily AS T1 MERGE ULT2_yahoo_b_daily AS T2 WHERE bcookie != 'abc' and T1.datestamp = '20040626' AND T2.datestamp = '20040627' and T1.dstid != '16331' and T2.dstid != '16331' ORDER BY 2;" -verbose -w myna_test -cluster chao_cluster
+myna -execute "SELECT bcookie, username, srcid, dstid, action, ip from IPusrlogs2_l_daily where datestamp = '11111111' order by 1, 2, 3, 4, 5, 6;" -verbose -w myna_test -cluster chao_cluster -output ~/1.gz
+
+#AC4 myna 2.3 performance testing
+# wrong files:
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1228778077.ac4-devawserver-001.66496/logs
+/net/ac4-devmyna-007.ysm.ac4/home//d1/myna/chaow/ac4_cluster.chaow.1228778077.ac4-devawserver-001.66496/2/results/2.collapse.out.gz4.5.gz
+
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1228775634.ac4-devawserver-001.65340/logs
+
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1229039631.ac4-devawserver-001.26765/logs
+
+
+myna -execute "select username,bcookie,recordtype,timestamp,duration,ip,adinfo,titlesandabstracts from  IPusrlogs2_b_daily where datestamp = '19001165' and cast(timestamp as integer) > 1000 and cast(timestamp as integer)< 9999999999 and os != 0;" -cluster chao_cluster -verbose -trace_level debug -output ~/tmp/1 -w myna_test
+myna -execute "select username,bcookie, count(*) from  IPusrlogs2_b_daily where datestamp ='19001165' and username != 'asdf' and username regexp '.*a' group by username,bcookie ;" -cluster chao_cluster -verbose -trace_level debug -output ~/tmp/1 -w myna_test 
+myna -execute "select bcookie, max(cast(timestamp as integer)) as maxT from IPusrlogs2_b_daily where datestamp = '19001165' group by bcookie having maxT > 100 ;"  -cluster chao_cluster -verbose -trace_level debug -output ~/tmp/1 -w myna_test  
+myna -execute "select username,bcookie,recordtype,ip,titlesandabstracts, min(cast(timestamp as integer) ) from  IPusrlogs2_b_daily where datestamp = '19001165' and adinfo is not null group by username,bcookie,recordtype,ip,titlesandabstracts ;"  -cluster chao_cluster -verbose -trace_level debug -output ~/tmp/1 -w myna_test  
+myna -execute "select username,bcookie,recordtype,timestamp,ip,adinfo,titlesandabstracts,sum(os) from  IPusrlogs2_b_daily where datestamp = '19001165' and adinfo is not null and cast(timestamp as integer)< 9999999999 and os != 0 group by username,bcookie,recordtype,timestamp,ip,adinfo,titlesandabstracts;" -cluster chao_cluster -verbose -trace_level debug -output ~/tmp/1 -w myna_test
+
+
+# sage
+# slow clustered insert query;
+# myna 22
+/net/myna-data5/central/batch1_trex_stg/dp/batch1_trex_stg.dp.1231948100.ac4-mynafe-001.97591/logs
+/net/myna-data7/central/batch3_trex_stg/dp/batch3_trex_stg.dp.1232497177.ac4-mynafe-003.92367
+
+# myna 23
+/net/myna-data5/central/batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/logs/1
+
+	time /home/y/libexec/miners_myna/executor -o /dev/stdout -x /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/query.conf.xml -c 1 -s 2 -m 800m -i /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/1/\(inputfile\).11.1 -t PERF -e 0 -q batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914 -n ./combiner.lines.txt.11 -l ./log -r  | /home/y/bin/gzsort -D 300m -t ^A -T /home/y/tmp +1 -2 +2 -3 +3 -4 +5 -6 +4 -5 +6 -7 +7 -8 +8 -9 +9n -10 | /home/y/bin/myna_sprayer -file stdin -num_buckets 512 -bucket_range 353-384 -partition_alg hashfnv -partition_col ex_canon_query -input_schema /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/insert_input0.schema -output_schema /net/myna-data5/central/batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/insert_output0.schema -feHost ac4-mynafe-002.ysm.ac4.yahoo.com -fePort 39881 -drone_id 11 -subid 1 -stage 2 -compute_stats 0 -allow_oob -warehouse platotrex -mrkt_id 0 -datestamp 11111112 -feed mrp_keyword_srv_history_medprep_bid -frequency daily -datatype data -log_file ./sprayer_log -app_name Myna -app_id batch2_trex_stg.dp.1232049401.ac4-mynafe-02.47914-combiner-11 -log_priority PERF
+
+#crashed queries
+/net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1233276323.ac4-mynafe-002.908/logs
+/net/myna-data5/central/batch2_trex_stg/dp/batch2_trex_stg.dp.1233276323.ac4-mynafe-002.908/logs
+# good clustered query
+/net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1233264478.ac4-mynafe-002.57436/logs/
+
+	time /home/y/bin/myna_sprayer -file gzsort_output_new -num_buckets 512 -bucket_range 353-384 -partition_alg hashfnv -partition_col ex_canon_query -input_schema /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/insert_input0.schema -output_schema /net/myna-data5/central/batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/insert_output0.schema -feHost ac4-mynafe-002.ysm.ac4.yahoo.com -fePort 39881 -drone_id 11 -subid 1 -stage 2 -compute_stats 0 -allow_oob -warehouse platotrex -mrkt_id 0 -datestamp 11111111 -feed mrp_keyword_srv_history_medprep_bid -frequency daily -datatype data -log_file ./sprayer_log -app_name Myna -app_id batch2_trex_stg.dp.1232049401.ac4-mynafe-02.47914-combiner-11 -log_priority PERF
+
+
+/home/y/libexec/miners_myna/combiner.pl --parallelCombiner 1 --query_subid 1 --cluster_query 1 --drone_count 16 --num_query_drones 16 --cluster_xml /net/myna/clusters/batch2_trex_stg/conf/cluster.conf.xml /net/myna/clusters/batch2_trex_stg/conf/general.conf /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/query.conf --drone_id 11 --query_xml /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/query.conf.xml --port 39881 --srv_host ac4-mynafe-002.ysm.ac4.yahoo.com --query_id batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914 --user_id dp --cluster_name batch2_trex_stg --trace_level PERF --delimiter \001 --warehouse platotrex --loader_1_input_schema /net/myna-data5/central//batch2_trex_stg/dp/batch2_trex_stg.dp.1232049401.ac4-mynafe-002.47914/control/insert_input0.schema --drone_count 16 --loaderdrone_file stdin --executor_memory 800m
+
+	zcat /net/odw8/warehouse_platotrex/stores/mynatable512/links/temptable/uncookied/data/20090108151327_mrp_keyword_srv_history_serveid_tmp_0_20281201/015.gz | awk -F'^A' ' { print NF } ' | grep -v 20
+
+	sysctl -a |grep maxdsiz
+	cat /boot/loader.conf.local (?, seems not use here)
+	ulimit -a
+
+	#gzsort NMERGE
+	ac4 : /net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1231279960.ac4-devawserver-001.36564/logs
+
+bash-3.2$ time ./r; time ./r1
+
+real    60m34.708s
+user    56m54.873s
+sys     1m29.203s
+
+real    357m25.622s
+user    354m28.948s
+sys     1m36.993s
+
+real    33m41.082s
+user    31m52.067s
+sys     0m29.073s
+
+ 2188.58 real      2093.27 user        26.39 sys
+
+# load data from apex staging warehouse to ac4 ranger warehouse
+# step 1
+add store entries in wh_svr.xml
+
+# step 2
+create stores, dsds
+add warehouse -name ucs1 -desc \"for apex store ucs1\" -numbuckets 1
+add warehouse -name ucs512 -desc "for apex store ucs512" -numbuckets 512
+update type -name feeds -enum act_apex_targeted_serves_ac4
+add kvp -name feed_act_apex_targeted_serves_ac4 -desc "Contains serves with act_info data" -key feed -value act_apex_targeted_serves_ac4
+add dsd -name act_apex_targeted_serves_ac4_l_hourly -desc \"Contains serves with act_info data\" -materializes \{ feed_act_apex_targeted_serves_ac4, freq_hourly, cookie_l, type_data \}  -dsmMaterializes \{  \} -queriable 0 -contact "data-myna-dev@yahoo-inc.com"
+add dsd -name act_apex_targeted_serves_ac4_l_hourly_schema -desc "Contains serves with act_info data" -materializes { feed_act_apex_targeted_serves_ac4, freq_hourly, cookie_l, type_schema }  -dsmMaterializes {  } -queriable 0 -contact "data-myna-dev@yahoo-inc.com"
+update warehouse -name ucs512 -can \{ act_apex_targeted_serves_ac4_l_hourly\}
+update warehouse -name ucs1 -can { act_apex_targeted_serves_ac4_l_hourly_schema }
+
+update warehouse -name ucs512 -rmcan {}
+mdr add dsd -name dwRanger_l_daily -desc \"performance testing data\"  -materializes \{ feed_dwRanger, freq_daily, cookie_l, type_data \}  -dsmMaterializes \{  \} -queriable 0 -contact "data-myna-dev@yahoo-inc.com" -w ranger
+mdr add dsd -name dwRanger_l_daily_schema -desc \"performance testing data\"  -materializes \{ feed_dwRanger, freq_daily, cookie_l, type_schema \}  -dsmMaterializes \{  \} -queriable 0 -contact "data-myna-dev@yahoo-inc.com" -w ranger
+mdr update warehouse -name ucs512 -can \{ dwRanger_l_daily \} -w ranger
+mdr update warehouse -name ucs1 -can \{ dwRanger_l_daily_schema \} -w ranger
+
+
+# step 3
+make table queriable to myna
+myna -w warehouse -execute "create table T() partition by (col) using func;" -insertFromMynaOnly
+myna -w warehouse -execute "create table dwRanger_l_daily() partition by (timestamp) using hashfnv;" -insertFromMynaOnly -w ranger
+
+# step 4
+script to do: awacs insert -> scp -> awacs commitfile (for both data and schema files)
+awacs commitset(sparse) both data and schema files
+
+
+
+# slow myna_sprayer
+myna 23
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233792004.ac4-devawserver-001.29415/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233792968.ac4-devawserver-001.29675/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233793193.ac4-devawserver-001.29720/logs
+
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233860651.ac4-devawserver-001.53383/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233860901.ac4-devawserver-001.53451/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233861159.ac4-devawserver-001.53530/logs
+
+myna 224
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233796387.ac4-devawserver-001.31080/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233796679.ac4-devawserver-001.31135/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233797758.ac4-devawserver-001.31367/logs
+
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233856519.ac4-devawserver-001.51765/logs (abnormal)
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233856957.ac4-devawserver-001.51883/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233857234.ac4-devawserver-001.51959/logs
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1233857545.ac4-devawserver-001.52075/logs
+
+
+# column buffer phase 2 work
+myna23
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1236038369.ac4-devawserver-001.87151/logs
+	
+myna23 with phase 2
+/net/ac4-devmyna-001.ysm.ac4/home/myna/central/ac4_cluster/chaow/ac4_cluster.chaow.1236035510.ac4-devawserver-001.86083/logs
+
+
+
+# myna trouble shooting
+1) mdr/dsd: cannot connect... libcurl 7 error
+	Confirm: mdr fat command should work, but thin client mdf command does not work;
+	to fix: go to puns server for say myna_test
+					yinst stop miners_wh_puns
+					yinst start miners_wh_puns
+
+awacs allfeeds -w ranger
+# scawacs
+echo '{ "kvps": { } }' | scawacs -w $WH -r "awacs allfeeds" -file -
+
+yinst crontab -list
+
+myna_test:
+	awacs server: mig6.data
+	mysql -umdr -pcommit
+
+# torque/moab related
+# on scheduler box
+/home/y/bin64/qmgr -c 'l s' # check tcp_timeout
+sudo qmgr -c 'set server tcp_timeout 30'
+
+
+#issue: myna 22x only, myna 23 does not have the issue;
+#symptom
+use a different scheduler box when reinstalling myna cluster;
+but still pointing to old scheduler box;
+#cause
+torque_node/torque_common has some bug;
+#solution
+step1): remove all torque packages on all dorne boxes;
+step2): taxi command from the box where you do 'myna_admin install' 
+step3): miners_myna_admin install (reinstall)
+
+#issue 
+#symptom
+/home/y/bin64/pbsnodes -a
+some drone status is "down"
+#confirm
+/home/y/var/pbs/server_name -> wrong scheduler box;
+sudo /home/y/sbin64/momctl -d 3
+Ajay Kidave: on the drone machine gives drone diagnostic info
+#cause
+drone: torque_common64/torque_node64 pkg did not install properly
+PBS_SERVER setting wrong
+#solution
+reinstall pkgs with correct property settings
+
+
+#issue
+myna fe just remember the old pbs_server setting and send jobs to there.
+everything in fe and drones look fine
+# cause
+by default yinst remember property setting for deactivated pkgs;
+#solution
+fe: yinst rm *torque* -live -dep
+yinst clean -setting
+rerun taxi and myna_admin install 
+
+#issue
+/home/y/bin64/qmgr -c 'l s'
+/home/y/bin64/qmgr -c 'set server acl_hosts -= c4-devcheetah-001.ysm.ac4.yahoo.com'
+yinst restart miners_torquer_server64
+
+#to remove mysql_server (myna root keydb related installation error)
+yinst rm mysql* -live -dep
+sudo rm -rf /home/y/var/mysql (to get back to a clean status)
+sudo rm -rf /home/y/conf/keydb
+sudo killall -m mysql
+
+#ysar
+on drone box:
+yinst set |grep ysar
+ysar -interval 5
+
+
+# sage experiments;
+
+#dp access
+ac4-mynaclient-116.ysm.ac4
+
+# executor_memory
+1000m
+batch1_trex_stg.dp.1241994174.ac4-mynafe-001.68002/
+
+1500m
+batch1_trex_stg.dp.1242019498.ac4-mynafe-001.12172/
+
+2000m
+batch1_trex_stg.dp.1242042452.ac4-mynafe-001.49834/
+
+*******************************************************
+1500m
+batch1_trex_stg.dp.1242075566.ac4-mynafe-001.89543
+
+1350m
+/net/myna-data5/central/batch1_trex_stg/dp/batch1_trex_stg.dp.1242075566.ac4-mynafe-001.89544/logs
+
+
+# latest one (rs=medium ds=48, em=1350m)
+/net/myna-data7/central//batch4_trex_stg/dp/batch4_trex_stg.dp.1242157110.ac4-mynafe-004.75054/logs
+
+
+
+###########################################################
+#####    grid building related   ##########################
+###########################################################
+
+
+# grid table;
+
+# debug configuration
+LD_LIBRARY_PATH = /homes/chaow/dev_grid/table/table2/hadoop-tfile/build/native/Linux-i386-32/lib
+
+sdsconverter benchmark:
+/homes/chaow/dev_table1/ult_sds/src/com/yahoo/grid/benchmark/serial/DefaultTupleMaker.java
+
+ant -Dtestcase=TestTableLoader test-contrib
+ant -Dclover.home=~/myprograms/clover -Drun.clover=true clover  test generate-clover-reports
+ant -Dfindbugs.home=~/myprograms/findbugs findbugs
+ant -p
+export LD_LIBRARY_PATH=/homes/chaow/dev_zebra/pig-table/build/Linux-i386-32
+iostat -x 5
+jps
+jstack 17907 > /tmp/x
+dmesg | tail
+git log -p HEAD~3 HEAD~2
+git log --stat --summary
+patch -p0 < ~/A29ColumnSecurity.patch
+patch -R -p0 < ~/A29ColumnSecurity.patch
+git diff --no-prefix commit_version_early commit_version_later > patch
+# binary file
+git checkout HEAD pig-0.6.0-dev-core.jar (checkout latest pig jar)
+git checkout HEAD~3 pig-0.6.0-dev-core.jar (checkout 3rd last pig jar)
+git checkout sha file_path (revert back file to some early version)
+
+git revert some_commit_no
+
+git clean -df (remove untracked dirs/files)
+
+git pull (if your local branch is behind... and to fetch latest changes)
+
+
+#git flow
+git clone
+git branch -a (list all branches)
+git checkout -b splits origin/splits (create a local "splits" branch)
+#to verify:
+git branch (only show local branches) : 
+  master
+* splits
+
+git branch -a :
+  master
+* splits
+  origin/HEAD
+  origin/master
+  origin/sortedtable
+  origin/splits
+
+git show HEAD
+git show HEAD^ (HEAD^ = HEAD~1)
+
+
+#svn;
+svn+ssh://svn.corp/yahoo/platform/grid/projects/trunk/
+svn co https://svn.apache.org/repos/asf/hadoop/pig/trunk/ pig-trunk
+svn diff
+svn co svn+ssh://svn.corp.yahoo.com/yahoo/platform/grid/projects/trunk/pig
+
+#checkout the pig-load-store-redesign branch
+svn co svn+ssh://svn.corp.yahoo.com/yahoo/platform/grid/projects/branches/pig-load-store-redesign
+
+#checkout apache pig-0.6 branch
+svn co https://svn.apache.org/repos/asf/hadoop/pig/branches/branch-0.6/ pig
+
+#checkout apache pig's load-store redesign branch
+svn co https://svn.apache.org/repos/asf/hadoop/pig/branches/load-store-redesign
+
+svn diff -r r2392:r2440 bin/mkdistro.sh
+svn diff -r r2425:r2434
+
+
+#Tips for working with multiple patches
+How can we create two patches p1 and p2 where p2 should be applied after p1?
+We can have a local git repository over the apache svn checkout and create p2 after committing p1 to local git.
+To set up local git :
+fresh checkout of svn : $svn co http://svn.apache.org/repos/asf/hadoop/pig/trunk pig-patch
+$ cd pig-patch
+Note : do not build or make any changes until git is set up
+$ git init
+$ echo ".svn" >> .git/info/exclude : This will skip .svn in each directory
+$ git add .
+$ git commit -a -m "initial commit of svn version xxxxxx"
+Now the git is setup.
+prepare and apply the patch p1
+$ git commit -a -m "p1"
+make changes for p2 and perform usual sanity checks (compile, tests)
+$ git commit -a -m "p2"
+Now you can get p2 from the command : $ git diff --no-prefix HEAD~1...HEAD > p2.patch
+
+
+
+/grid/0/dev/jing1234/hadoop-0.20.9/bin/hadoop fs -cat  /user/jing1234/outputdata/t1/.btschema
+#admin node;
+on adm102.blue.ygrid.yahoo.com:
+/usr/local/bin/mygrid.pl  -c ob -s 60-70 -p tmp.tar
+#kill all java processes
+for host in $(mygrid.pl -c ob -s 61-70 -l) ; do echo "----[$host]" ; sudo ssh $host killall java ; done
+
+for file in $(find . -name "*.java" |grep -v test) ; do  wc -l $file; done |sort -n
+
+#on name node;
+name node: gsbl90590.blue.ygrid.yahoo.com
+export HADOOP_HOME=/grid/0/dev/hadoopqa/hadoop/
+export HADOOP_CONF_DIR=/grid/0/dev/hadoopqa/chaow/conf/
+
+distcp
+axonite blue cluster (ops research cluster, need to back up data here also)
+deploy two hadoop copies: one for map/reduce, one for hdfs (so we can deploy new map/reduce, without touching hdfs stuff including our data)
+
+
+#proxy 
+socks.corp.yahoo.com 1080
+
+#hod nitra gold
+~/hadoop_tarball/hadoop-0.18.2-dev/bin/hadoop job -Dmapred.job.tracker=gs209402.inktomisearch.com:52634 -kill job_200907271843_0004 (on gateway machine, jobtracker:52634
+is from hod running log)
+[hadoopqa@gsbl90590 test5]$ /grid/0/gs/java/jdk/bin/java -Dmapred.task.maxvmem=2000000000 -cp /grid/0/dev/hadoopqa/chaow/conf/:/homes/hadoopqa/test5/pig.jar:/homes/hadoopqa/test5/zebra.jar:/homes/hadoopqa/test/tfile.jar org.apache.pig.Main
+ 
+muygrid.pl -c ob -s 60-70 -cleanup
+pdsh -w gsbl90[590-599,600-609,610-619,620-629,630-639,640-649,650-659,660-669,670-679,680-689,690-699].blue.ygrid.yahoo.com 'echo $HADOOP_HOME'
+pdsh -w gsbl90[590-599,600-609,610-619,620-629,630-639,640-649,650-659,660-669,670-679,680-689,690-699].blue.ygrid.yahoo.com 'cd /grid/0/dev/chaow/hadoop*/lib/; /bin/rm -r Linux*'
+/grid/0/dev/chaow/hadoop-0.20.9/bin/hadoop distcp -ppg hftp://axoniteblue-nn1:50070/user/htang/net /user/chaow/net/
+#hadoop distcp -ppg hftp://nitroblue-nn1.blue.ygrid.yahoo.com:50070/data/SDS/data/search_US/20090320/18025 hftp://axoniteblue-nn1.blue.ygrid.yahoo.com:50070/user/chaow/data/SDS/data/search_US/20090320/
+hadoop distcp -ppg hdfs://nitroblue-nn1.blue.ygrid.yahoo.com:8020/data/SDS/data/search_US/20090320/18025 hdfs://axoniteblue-nn1.blue.ygrid.yahoo.com:8020/user/chaow/data/SDS/data/search_US/20090320/
+
+
+mygrid.pl -c ob -s 60-70 -n -p asdf
+
+#on axinite blue; // check raw log data;
+hadoop dfs -fs hdfs://axoniteblue-nn1.blue.ygrid.yahoo.com:8020 -ls /user/htang/net/
+
+#on nitra blue;
+hadoop dfs -fs hdfs://nitroblue-nn1.blue.ygrid.yahoo.com:8020 -ls /data/SDS/data/search_US/20090320/18025/ (not existing)
+// ULT Jute data backup:
+hadoop dfs -fs hdfs://axoniteblue-nn1.blue.ygrid.yahoo.com:8020  -ls /user/chaow/data/SDS/data/search_US/2009032[0-6]/18025
+
+
+
+
+select query:
+/net/ods1/myna/central/ctpjaguar3/dev_ctpjaguar3/dp/dev_ctpjaguar3.dp.1252519426.ac4-devctpmyna-007.77020/logs
+
+bad insert query:
+/net/ods1/myna/central/ctpjaguar3/dev_ctpjaguar3/dp/dev_ctpjaguar3.dp.1252513859.ac4-devctpmyna-007.73684/logs
+
+
+
+#
+sudo su hadoopqa
+
+
+
+
+# zebra performance benchmark
+java -cp $HADOOP_CONF_DIR:zebraperf.jar:lib/xercesImpl.jar:lib/pig.jar ZebraPerf -c conf/test.xml -s test 
+
+#install cluster with bad nodes;
+1) use hudson automation tool
+
+2) copy out sandbox directory
+
+3) recreate chaow.tar by: ./setupCluster.sh ob  60,61,62,63,64,65,66,67,68,69,70  chaow  Hadoop_0.20.x (this will fill in all necessary configuration change)
+
+4) /usr/local/bin/mygrid.pl -c ob -s 60-70 -p hadoop.tar
+   /usr/local/bin/mygrid.pl -c ob -s 60-70 -p chaow.tar
+
+5) export HADOOP_HOME = xxx
+   export HADOOP_CONF_DIR = xxx
+   bin/hadoop namenode -format
+
+   start-dfs.sh
+   start-mapred.sh
+
+6) #validation
+   jps;
+   bin/hadoop dfsadmin -report
+
+
+# Owl
+ant clean war jetty-stop derby-cleanup derby-setup jetty-start
+
+hadoop jar test.jar org.apache.hadoop.owl.mapreduce.TestJuteMRStress5  -libjars ./sds.jar,./owl-0.0.2-dev.jar,./pig-internal.jar
+hadoop jar test.jar org.apache.hadoop.zebra.mapreduce.TestMultipleOutputs -Dmapred.job.queue.name=grideng -libjars ./zebra-0.7.0-dev.jar,./pig-0.7.0-dev-core.jar
+
+
+# converter.sh
+register /grid/0/dev/chaow/Performance_new/sds.jar;
+register /grid/0/dev/chaow/Performance_new/zebra.jar;
+
+a = LOAD '/data/data/SDS/data/search_US/20090320/18025/click' USING com.yahoo.yst.sds.ULT.ULTLoader() as (simpleFields, mapFields, mapListFields);
+
+b = foreach a generate (chararray)(simpleFields#'bcookie') as bcookie,(chararray)simpleFields#'yuid' as yuid,(chararray)simpleFields#'ip' as ip,simpleFields#'action' as action,simpleFields#'afcookie' as afcookie,(int)simpleFields#'browser' as browser,simpleFields#'bucket' as bucket,(chararray)simpleFields#'cbrn' as cbrn,(chararray)simpleFields#'csc' as csc,simpleFields#'datestamp' as datestamp,(chararray)simpleFields#'dst_spaceid' as dst_spaceid,simpleFields#'dstid' as dstid,(chararray)simpleFields#'dstpvid' as dstpvid,(chararray)simpleFields#'error' as error,(int)simpleFields#'match_ts' as match_ts,(chararray)simpleFields#'media' as media,(chararray)simpleFields#'ms' as ms,(int)simpleFields#'os' as os,(chararray)simpleFields#'pcookie' as pcookie,(int)simpleFields#'pg_load_time' as pg_load_time,(int)simpleFields#'pg_size' as pg_size,(chararray)simpleFields#'pg_spaceid' as pg_spaceid,(chararray)simpleFields#'query_term' as query_term,(chararray)simpleFields#'referrer' as referrer,(chararray)simpleFields#'server_code' as server_code,(chararray)simpleFields#'src_spaceid' as src_spaceid,simpleFields#'srcid' as srcid,(chararray)simpleFields#'srcpvid' as srcpvid,(int)simpleFields#'timestamp' as timestamp,(chararray)simpleFields#'type' as type,(chararray)simpleFields#'ultspaceid' as ultspaceid,(chararray)simpleFields#'ydod' as ydod, (map[])mapFields#'demog' as demog,(map[])mapFields#'page_params' as page_params,(map[])mapFields#'clickinfo' as clickinfo,(bag{tuple(map[])})mapListFields#'viewinfo' as viewinfo{t:(m)};
+c = order b by bcookie parallel 250;
+
+store c into '/Data/zebra/20090320/click' using org.apache.hadoop.zebra.pig.TableStorer('[bcookie,yuid,ip];[action,afcookie,browser,bucket,cbrn,csc,datestamp,dst_spaceid,dstid,dstpvid,error,match_ts,media,ms,os,pcookie,pg_load_time,pg_size,pg_spaceid,query_term,referrer,server_code,src_spaceid,srcid,srcpvid,timestamp,type,ultspaceid,ydod,demog];[page_params,clickinfo,viewinfo]');
+
+
+#OOzie
+ 1022  export PATH=/tmp/oozie/bin:$PATH
+ 1045  export PATH=`pwd`:$PATH
+[chaow@pressglass examples]$ echo $OOZIE_URL 
+export OOZIE_URL=http://localhost:4080/oozie/
+
+1.  sudo /home/y/libexec/jdk1.6.0/bin/jmap -F -dump:file=/tmp/tomcat.jmap <PROCESS_ID> 
+2.  sudo /home/y/libexec/jdk1.6.0/bin/jhat -J-mx2048m /tmp/tomcat.jmap 
+3.  http://<HOST_NAME>:7000
+4.  http://<HOST_NAME>:7000/showInstanceCounts/
+5.  http://<HOST_NAME>:7000/roots/<OBJECT_ID>
+
+// to find out oozie restart log
+grep BUILD log*
+
+ 1006  cd oozie
+ 1010  oozie jobs
+ 1019  ./oozie jobs
+ 1022  export PATH=/tmp/oozie/bin:$PATH
+ 1023  oozie
+ 1024  oozie jobs
+ 1028  oozie.wf.application.path=hdfs://localhost:9000/tmp/examples/workflows/map-reduce
+ 1049  cd /tmp/oozie/
+ 1060  oozie job -run -config ./map-reduce-job.properties 
+ 1061  oozie job -info 0000000-100617152424621-oozie-chao-W
+ 1067  oozie job -run -config ./map-reduce-job.properties 
+ 1069  oozie job -run -config ./map-reduce-job.properties 
+ 1070  oozie job -info -config ./map-reduce-job.properties 
+ 1073  oozie job -run -config ./map-reduce-job.properties 
+ 1074  oozie job -info  0000002-100617152424621-oozie-chao-W
+
+ bin/mkdistro.sh -dmysql -uroot -llocalhost:3306/oozie -DskipTests -DhadoopVersion=0.20.1.3092118008 -Doozie.test.hadoop.security=pre
+ bin/mkdistro.sh -Doozie.test.hadoop.minicluster=true -Dtest=TestRerun  -DhadoopVersion=0.20.1.3092118008 -Doozie.test.hadoop.security=pre
+ -Doozie.test.hadoop.minicluster=true -Dtest=TestRerun  -DhadoopVersion=0.20.104.1 -Doozie.test.hadoop.security=simple
+ cat .svn/entries
+
+ bin/mkdistro.sh -DhadoopGroupId=org.apache.hadoop -DhadoopVersion=0.20.2 -Dhadoop20 -Doozie.test.hadoop.minicluster=false (not using security cluster)
+
+apache-maven-2.2.0
+yjava_tomcat-6.0.18.12
+
+
+./inject_hadoop_jars.sh /home/chaow/workspace/apache-2.1/oozie-main/distro/target/oozie-2.1.0.0-0.20.2---distro.dir/oozie-2.1.0.0-0.20.2--/wars/oozie.war /home/chaow/workspace/apache-2.1/oozie-main/oozie2.war /home/chaow/myprograms/hadoop/ 0.20.2
+
+#callback
+/home/y/libexec/tomcat/webapps/oozie/WEB-INF/classes/oozie-site.xml
+
+ ./distro/target/oozie-2.2.0-SNAPSHOT-distro/oozie-2.2.0-SNAPSHOT/bin/addtowar.sh -inputwar /home/chaow/workspace/atrunk/oozie-main/distro/target/oozie-2.2.0-SNAPSHOT-distro/oozie-2.2.0-SNAPSHOT/oozie.war -outputwar ./oozie2.war -hadoop 0.20.2 /home/chaow/myprograms/hadoop -extjs /home/chaow/ext-2.2/
+
+#Pig
+
+export CLASSPATH="....jar"
+export PIG_OPTS="-Djava.library.path=/usr/lib64:/opt/ibm/biginsights/IHC/lib/native/Linux-amd64-64"
+$PIG_HOME/bin/pig
+
+[chaow@gwbl4000 ~]$ hostname
+gwbl4000.blue.ygrid.yahoo.com
+[chaow@gwbl4000 ~]$ pig -l -help
+USING: /grid/0/gs/pig/latest
+
+Apache Pig version 0.7.0.20.10.0.1006282257 (r958774) 
+compiled Jun 28 2010, 22:57:33
+
+USAGE: Pig [options] [-] : Run interactively in grunt shell.
+       Pig [options] -e[xecute] cmd [cmd ...] : Run cmd(s).
+       Pig [options] [-f[ile]] file : Run cmds found in file.
+  options include:
+    -4, -log4jconf log4j configuration file, overrides log conf
+    -b, -brief brief logging (no timestamps)
+    -c, -cluster clustername, kryptonite is default
+    -d, -debug debug level, INFO is default
+    -e, -execute commands to execute (within quotes)
+    -f, -file path to the script to execute
+    -h, -help display this message
+    -i, -version display version information
+    -j, -jar jarfile load jarfile
+    -l, -logfile path to client side log file; current working directory is default
+    -m, -param_file path to the parameter file
+    -p, -param key value pair of the form param=val
+    -r, -dryrun
+    -t, -optimizer_off optimizer rule name, turn optimizer off for this rule; use all to turn all rules off, optimizer is turned on by default
+    -v, -verbose print all error messages to screen
+    -w, -warning turn warning on; also turns warning aggregation off
+    -x, -exectype local|mapreduce, mapreduce is default
+    -F, -stop_on_failure aborts execution on the first failed job; off by default
+    -M, -no_multiquery turn multiquery optimization off; Multiquery is on by default
+
+
+#kerberos setup:
+ KDC database master key = 12345
+Enter password for principal "chaow/admin@LOCALHOST":chao
+
+supported_enctypes = des3-hmac-sha1:normal arcfour-hmac-md5:normal des-cbc-crc:normal des-cbc-crc:v4
+hdfs-site.xml (https principal update = namenode principal)
+
+
+#oracle database;
+./sqlplus oozie12/oozie12@BLUEDEV3
+cwang/cw9ng1
+sqlplus ahuang/aha4n9@OZBLUE
+
+select count(*) from mithgold.coord_actions where status ='WAITING'
+and created_time < '01-DEC-10 01.00.00.000000000 PM'
+
+select type, count(id) from axogold.wf_actions where start_time > '13-JAN-11 12.00.00.000000000 AM' and start_time < '14-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '12-JAN-11 12.00.00.000000000 AM' and start_time < '13-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '11-JAN-11 12.00.00.000000000 AM' and start_time < '12-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '10-JAN-11 12.00.00.000000000 AM' and start_time < '11-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '09-JAN-11 12.00.00.000000000 AM' and start_time < '10-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '08-JAN-11 12.00.00.000000000 AM' and start_time < '09-JAN-11 12.00.00.000000000 AM' group by type;
+select type, count(id) from axogold.wf_actions where start_time > '07-JAN-11 12.00.00.000000000 AM' and start_time < '08-JAN-11 12.00.00.000000000 AM' group by type;
+
+select type, round(count(id)/7) from axogold.wf_actions where start_time > '07-JAN-11 12.00.00.000000000 AM' and start_time < '14-JAN-11 12.00.00.000000000 AM' group by type;
+
+select count(distinct(user_name)) from axogold.wf_jobs;
+
+
+#github
+git push -n origin :gh-pages (-n dryrun)
+git remove add rvs_yahoo git@github.com:rvs/oozie3.git
+git fetch rvs_yahoo
+git push -n origin gh-pages:gh-pages
+http://rvs.github.com/oozie/
+
+ 1876  git branch -a
+ 1877  git remote add yahoo git@github.com:yahoo/oozie3.git
+ 1878  git fetch yahoo
+ 1879  git branch -a
+ 1880  git checkout -b test-13 yahoo/oozie-2.2
+ 1881  git diff  client/src/main/java/org/apache/oozie/client/OozieClient.java
+ 1882  git remote add angeloh git@github.com:angeloh/oozie3.git
+ 1883  git fetch
+ 1884  git fetch angeloh
+git push yahoo(or origin: remote repo) test-13(src branch):oozie-2.2(dest branch)
+//commit message: Closes GH-20 fix a bug ...
+git push -n origin :gh-0060
+
+git rebase -i master 
+git remote -v
+git rebase --abort
+
+# oracle debugging
+1) server.xml.yin methil... -> wf111
+2) yinst set methild... -> wf111
+
+wf108.dbo.sql.log  wf111.sql.log
+[kamrul@wf108 log]$ hostname
+wf108.blue.ygrid.yahoo.com
+
+phase 1) box 108 dba user, good case data collection;
+
+phase 2) then 108 restrictive user, normal case data collection;
+
+action items)
+1) yinstable jpa logging
+2) dba script make into code repo (may not be github)
+
+
+
+git log --graph --pretty=oneline
+
+git cherry-pick (rebase (recommend keep history) /merge)
+git remote -v
+git rebase trunk m/GH-7
+#flow
+
+
+#oozie gw running jobs;
+kinit -kt ~/strat_ci.dev.headless.keytab strat_c
+klist -kt   ~/strat_ci.dev.headless.keytab
+
+#test for hudson
+yroot --create Test
+sudo -su
+yroot Test
+yinst i yjava_maven
+
+
+select id, created_time, status from cbblue.coord_actions where status = 'WAITING' and rownum <=20 order by created_time;
+select id, job_id, created_time, status from cbblue.coord_actions where status = 'WAITING' order by created_time;
+
+select id, created_time, status from cbblue.coord_actions where status = 'WAITING' and created_time < '06-NOV-10 01.00.00.000000000 PM' order by created_time;
+
+select a.id, a.created_time, a.status, b.user_name from cbblue.coord_actions a, cbblue.coord_jobs b where a.status = 'WAITING' and a.job_id = b.id and a.created_time < '06-NOV-10 01.00.00.000000000 PM' order by a.created_time;
+select count(*) from cbblue.coord_actions a, cbblue.coord_jobs b where a.status = 'WAITING'  and a.job_id = b.id and a.created_time < '06-NOV-10 02.33.42.273000000 PM' and b.status <> order by a.created_time;
+
+insert into users(user_id, first_names, last_name, email, password, registration_date)values(5,'c','c','c@whitehouse.gov','kl88q',to_timestamp('2010-11-26 15:18:22','YYYY-MM-DD HH24:MI:SS'));
+select email, registration_date from users where registration_date < current_date - interval '1' day;
+delete from users where registration_date in (select registration_date from users where registration_date < current_date - interval '3' day);
+
+column email format a35
+column registration_date format a25
+select email, registration_date 
+from users
+where registration_date > current_date - interval '1' day;
+
+
+
+
+
+describe 
+
+
+# oozie trouble-shooting
+export OOZIE_SAVE_COOKIE=true (to save bouncer pwd typing)
+
+
+
+# Gird clusters info:
+mithril-gw.gold.ygrid.yahoo.com
+
+
+
+http://uraniumblue-oozie.blue.ygrid.yahoo.com:4080/oozie/
+http://uraniumtan-oozie.tan.ygrid.yahoo.com:4080/oozie/
+
+
+# publish oozie artifacts to maven central repo
+
+1) create a pair of keys
+$gpg --gen-key (never expires, passphrase: oozie)
+
+2) list public keys;
+$gpg --list-keys 
+
+3) list private keys;
+gpg --list-secret-keys
+
+
+# biginsights
+http://svltest343.svl.ibm.com:8080/BigInsights/console/NodeAdministration.jsp # bi console;
+#to start oozie-2.3.1 in wasce
+export GERONIMO_OPTS="-Doozie.home.dir=/home/admin/opt/ibm/biginsights/oozie"
+#about deploy new oozie.war in wasce
+0) uninstall oozie app
+1) stop.sh oozie
+2) delete var/config/config.xml last lines
+3) delete repository/defult/oozie
+4) deploy new war
+
+
+# elastic search
+POST /mars/searchlog/_search
+{
+    "size": 100, 
+   "query": {
+      "match_all": {}
+   }
+}
+    
+    
+POST /mars/_search?search_type=count
+{
+   "query": {
+      "match_all": {}
+   },
+   "aggs": {
+       "source": {
+           "terms": { "field": "source" }
+       }
+   }
+}
+
+PUT /mars/searchlog/1
+{                                                                                                                                                               
+        "dimension": {
+           "category": "all",
+           "countryCode": "US",
+           "source": "placecard_actions",
+           "date": "20150301"
+        },  
+        "metrics": {
+                "INFO_DIRECTIONS_TO":   54918933,
+                "CALLOUT_NAV":  46055258,
+                "NAV_START":    17718029,
+                "INFO_CALL":    10562752,
+                "INFO_URL":     5089760,
+                "INFO_YELP":    4170840,
+                "INFO_DIRECTIONS_FROM": 2461556
+        }   
+}
+
+GET /mars/searchlog/_search
+
+
+DELETE /mars/searchlog/1
+
+# install jedi: // vim plugin for python code auto completion
+# https://livesoncoffee.wordpress.com/2013/04/12/install-jedi-vim-plugin/
+ sudo pip install jedi
+ Next, we install the jedi plugin for vim using pathogen
+
+ 1
+ 2
+ cd ~/.vim/bundle
+ git clone https://github.com/davidhalter/jedi-vim.git
+ To take advantage of new powers, try these basic commands
+
+ cntrl-space — autocomplete partially type function/class and see args
+ shift-k — use pydoc to find function/class documentation
+
